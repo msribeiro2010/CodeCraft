@@ -1,0 +1,58 @@
+Quero que você atue como um engenheiro de software experiente e me ajude a construir uma aplicação completa de Controle Financeiro Pessoal.
+
+## Contexto e Objetivo:
+A aplicação deve permitir o usuário controlar seu saldo, receitas e despesas mensais, com um limite de cheque especial configurável. O saldo inicial pode ser negativo. Também será possível importar faturas, registrar transações, definir lembretes e visualizar o resumo em um dashboard.
+
+## Funcionalidades principais:
+- Cadastro/Login de usuário
+- Dashboard com:
+  - Saldo atual (considerando saldo inicial e cheque especial)
+  - Gráfico de receitas vs despesas
+  - Destaque visual ao ultrapassar o saldo e entrar no cheque especial
+- Transações com:
+  - Tipo: Receita ou Despesa
+  - Valor
+  - Data
+  - Categoria
+  - Observações
+  - Status: A Vencer, Pagar, Pago
+- Upload de faturas (PDF ou imagem)
+  - Processamento por OCR e conversão em transações
+- Lembretes automáticos:
+  - 1 dia antes do vencimento
+  - No dia do vencimento
+- Configurações:
+  - Edição de saldo inicial
+  - Edição do limite do cheque especial
+  - Ativar ou desativar notificações
+- Exportação de relatório mensal em PDF/Excel (opcional)
+
+## Banco de dados (usar Prisma com PostgreSQL):
+### Models:
+- User
+- Transaction (com enum: RECEITA, DESPESA e status: A_VENCER, PAGAR, PAGO)
+- Invoice (faturas)
+- Reminder
+
+## Tecnologias sugeridas:
+- Backend: Node.js com Express ou NestJS
+- Frontend: React ou React Native
+- Autenticação: Firebase Auth
+- OCR: Tesseract.js
+- Notificações: Firebase Cloud Messaging
+- Banco de dados: PostgreSQL com Prisma
+
+## Flow de usuário (UX Flow):
+1. Login/Cadastro
+2. Acesso ao dashboard principal
+3. Pode navegar para:
+   - Adicionar transações
+   - Upload de fatura (OCR)
+   - Definir lembretes
+   - Ajustar configurações
+4. Recebe alertas automáticos no vencimento
+5. Visualiza seu histórico e exporta relatórios
+
+Use boas práticas de código limpo, design modular, use Tailwind CSS para estilo e mantenha a estrutura de pastas organizada. Crie primeiro os schemas Prisma, depois as rotas, depois as telas de frontend.
+
+Evite alucinações e valide cada parte com base nas instruções acima.
