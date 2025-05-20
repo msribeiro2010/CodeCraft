@@ -73,6 +73,15 @@ export const insertTransactionSchema = createInsertSchema(transactions)
     createdAt: true,
   });
 
+// Transformador personalizado para datas no formulário
+export const transactionFormSchema = insertTransactionSchema.extend({
+  // Aceita string de data e converte para Date
+  date: z.union([
+    z.string().transform((str) => new Date(str)),
+    z.date()
+  ])
+});
+
 export const insertInvoiceSchema = createInsertSchema(invoices)
   .omit({
     id: true,

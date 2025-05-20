@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { 
   loginSchema, 
   registerSchema, 
-  insertTransactionSchema, 
+  insertTransactionSchema,
+  transactionFormSchema,
   insertCategorySchema, 
   insertInvoiceSchema, 
   insertReminderSchema
@@ -326,11 +327,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       };
       
-      // Converta a data para formato Date se for string
-      if (typeof transactionData.date === 'string') {
-        transactionData.date = new Date(transactionData.date);
-      }
-      
       // Certifique-se de que categoryId seja um número
       if (transactionData.categoryId && typeof transactionData.categoryId === 'string') {
         transactionData.categoryId = parseInt(transactionData.categoryId, 10);
@@ -338,7 +334,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Dados de transação recebidos:", transactionData);
       
-      const validation = insertTransactionSchema.safeParse(transactionData);
+      // Usa o esquema com transformador de data personalizado para maior flexibilidade
+      const validation = transactionFormSchema.safeParse(transactionData);
       
       if (!validation.success) {
         console.error("Erro de validação:", validation.error.format());

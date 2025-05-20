@@ -94,12 +94,15 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
         throw new Error('Categoria é obrigatória');
       }
 
+      // Formata a data como string ISO para garantir compatibilidade
+      const isoDate = values.date.toISOString();
+
       const formattedValues = {
         ...values,
         amount: amountStr,
         categoryId: parseInt(values.categoryId),
-        // Garante que a data seja um objeto Date válido
-        date: values.date,
+        // Envia a data como string ISO
+        date: isoDate,
       };
 
       console.log('Enviando dados para o servidor:', formattedValues);
