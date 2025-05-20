@@ -1,5 +1,5 @@
-import { AuthForm } from '@/components/auth/auth-form';
+import { AuthFormSimple } from '@/components/auth/auth-form-simple';
 
 export default function Auth() {
-  return <AuthForm />;
+  return <AuthFormSimple />;
 }
