@@ -29,7 +29,7 @@ export function AuthFormSimple() {
     setIsLoading(true);
     
     try {
-      await login({
+      const response = await login({
         email: loginEmail,
         password: loginPassword
       });
@@ -38,6 +38,9 @@ export function AuthFormSimple() {
         title: 'Login realizado com sucesso',
         description: 'Bem-vindo ao FinControl!',
       });
+      
+      // Redirecionar para o dashboard após login bem-sucedido
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -67,7 +70,7 @@ export function AuthFormSimple() {
     }
     
     try {
-      await register({
+      const response = await register({
         username: registerName,
         email: registerEmail,
         password: registerPassword,
@@ -81,6 +84,9 @@ export function AuthFormSimple() {
         title: 'Conta criada com sucesso',
         description: 'Bem-vindo ao FinControl!',
       });
+      
+      // Redirecionar para o dashboard após o registro bem-sucedido
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Registration error:', error);
       toast({
