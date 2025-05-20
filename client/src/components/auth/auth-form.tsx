@@ -259,7 +259,13 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="seu@email.com" />
+                          <Input 
+                            type="email" 
+                            placeholder="seu@email.com" 
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -273,7 +279,12 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Senha</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" />
+                          <Input 
+                            type="password"
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -287,7 +298,12 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Confirmar senha</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" />
+                          <Input 
+                            type="password"
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -301,7 +317,13 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Saldo Inicial (R$)</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" step="0.01" />
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormDescription>
                           Pode ser negativo.
@@ -318,7 +340,14 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Limite de Cheque Especial (R$)</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" step="0.01" min="0" />
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            min="0"
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
