@@ -80,9 +80,14 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
   async function onSubmit(values: z.infer<typeof transactionSchema>) {
     setIsLoading(true);
     try {
-      // Certifica-se de que o amount é uma string (o backend espera uma string)
-      const amountStr = typeof values.amount === 'number' ? 
-        values.amount.toString() : values.amount;
+      // Certifica-se de que o amount é uma string válida (formato esperado pelo backend)
+      let amountStr = '';
+      if (typeof values.amount === 'number') {
+        amountStr = values.amount.toString();
+      } else if (typeof values.amount === 'string') {
+        // Substitui vírgulas por pontos para garantir formato decimal correto
+        amountStr = values.amount.replace(',', '.');
+      }
 
       // Verifica se categoryId está definido
       if (!values.categoryId) {
@@ -93,8 +98,8 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
         ...values,
         amount: amountStr,
         categoryId: parseInt(values.categoryId),
-        // Certifica-se de que a data seja uma instância de Date
-        date: values.date instanceof Date ? values.date : new Date(values.date),
+        // Garante que a data seja um objeto Date válido
+        date: values.date,
       };
 
       console.log('Enviando dados para o servidor:', formattedValues);

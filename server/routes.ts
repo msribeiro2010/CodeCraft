@@ -319,12 +319,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/transactions", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      const validation = insertTransactionSchema.safeParse({
+      
+      // Ajuste os dados antes da validação
+      let transactionData = {
         ...req.body,
         userId
-      });
+      };
+      
+      // Converta a data para formato Date se for string
+      if (typeof transactionData.date === 'string') {
+        transactionData.date = new Date(transactionData.date);
+      }
+      
+      // Certifique-se de que categoryId seja um número
+      if (transactionData.categoryId && typeof transactionData.categoryId === 'string') {
+        transactionData.categoryId = parseInt(transactionData.categoryId, 10);
+      }
+      
+      console.log("Dados de transação recebidos:", transactionData);
+      
+      const validation = insertTransactionSchema.safeParse(transactionData);
       
       if (!validation.success) {
+        console.error("Erro de validação:", validation.error.format());
         return res.status(400).json({ message: "Dados inválidos", errors: validation.error.format() });
       }
 
