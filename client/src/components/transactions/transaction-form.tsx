@@ -60,7 +60,13 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   
-  const { data: categories } = useQuery({
+  // Defina um tipo para as categorias
+  type Category = {
+    id: number;
+    name: string;
+  };
+  
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
   });
 
@@ -81,13 +87,10 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
     setIsLoading(true);
     try {
       // Certifica-se de que o amount é uma string válida (formato esperado pelo backend)
-      let amountStr = '';
-      if (typeof values.amount === 'number') {
-        amountStr = values.amount.toString();
-      } else if (typeof values.amount === 'string') {
-        // Substitui vírgulas por pontos para garantir formato decimal correto
-        amountStr = values.amount.replace(',', '.');
-      }
+      // Certifica-se de que o amount é uma string válida
+      let amountStr = typeof values.amount === 'string' 
+        ? values.amount.replace(',', '.') 
+        : '';
 
       // Verifica se categoryId está definido
       if (!values.categoryId) {
@@ -250,7 +253,7 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories && categories.map((category: any) => (
+                      {categories.map((category) => (
                         <SelectItem 
                           key={category.id} 
                           value={category.id.toString()}

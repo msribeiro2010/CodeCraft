@@ -332,10 +332,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transactionData.categoryId = parseInt(transactionData.categoryId, 10);
       }
       
+      // Garante que a data seja um objeto Date válido
+      if (typeof transactionData.date === 'string') {
+        transactionData.date = new Date(transactionData.date);
+      }
+      
       console.log("Dados de transação recebidos:", transactionData);
       
-      // Usa o esquema com transformador de data personalizado para maior flexibilidade
-      const validation = transactionFormSchema.safeParse(transactionData);
+      const validation = insertTransactionSchema.safeParse(transactionData);
       
       if (!validation.success) {
         console.error("Erro de validação:", validation.error.format());
