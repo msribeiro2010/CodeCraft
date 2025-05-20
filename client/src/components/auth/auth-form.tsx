@@ -240,7 +240,12 @@ export function AuthForm() {
                       <FormItem>
                         <FormLabel>Nome completo</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Seu nome" />
+                          <Input 
+                            placeholder="Seu nome" 
+                            onChange={field.onChange}
+                            value={field.value}
+                            disabled={isLoading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
