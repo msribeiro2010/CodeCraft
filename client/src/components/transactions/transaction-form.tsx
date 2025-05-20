@@ -80,10 +80,24 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
   async function onSubmit(values: z.infer<typeof transactionSchema>) {
     setIsLoading(true);
     try {
+      // Certifica-se de que o amount é uma string (o backend espera uma string)
+      const amountStr = typeof values.amount === 'number' ? 
+        values.amount.toString() : values.amount;
+
+      // Verifica se categoryId está definido
+      if (!values.categoryId) {
+        throw new Error('Categoria é obrigatória');
+      }
+
       const formattedValues = {
         ...values,
+        amount: amountStr,
         categoryId: parseInt(values.categoryId),
+        // Certifica-se de que a data seja uma instância de Date
+        date: values.date instanceof Date ? values.date : new Date(values.date),
       };
+
+      console.log('Enviando dados para o servidor:', formattedValues);
 
       if (transactionToEdit) {
         await updateTransaction(transactionToEdit.id, formattedValues);
@@ -102,10 +116,10 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
       onClose();
       form.reset();
     } catch (error) {
-      console.error(error);
+      console.error('Erro ao salvar transação:', error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar a transação",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar a transação",
         variant: "destructive",
       });
     } finally {
