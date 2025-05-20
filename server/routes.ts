@@ -420,37 +420,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invoices/upload", isAuthenticated, upload.single("invoice"), async (req, res) => {
+  app.post("/api/invoices/upload", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
       const userId = (req.user as any).id;
+      const barcode = req.body.barcode;
       
-      if (!req.file) {
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      let processedText = '';
+      let filename = '';
+      let fileContent = '';
+      
+      // Caso 1: Upload de arquivo para processamento
+      if (req.file) {
+        const fileBuffer = req.file.buffer;
+        fileContent = fileBuffer.toString("base64");
+        const fileId = createId();
+        const fileExtension = req.file.originalname.split(".").pop();
+        filename = `${fileId}.${fileExtension}`;
+
+        // Process with OCR
+        const worker = await createWorker("por");
+        const result = await worker.recognize(fileBuffer);
+        await worker.terminate();
+        
+        processedText = result.data.text;
+        
+        // Tenta encontrar um código de barras se não foi fornecido manualmente
+        if (!barcode) {
+          const barcodeRegex = /(\d{5}[.]\d{5}\s\d{5}[.]\d{6}\s\d{5}[.]\d{6}\s\d{1}\s\d{14})|(\d{47})/g;
+          const matches = processedText.match(barcodeRegex);
+          
+          if (matches && matches.length > 0) {
+            // Adiciona informação sobre o código de barras encontrado
+            processedText += "\n\n--- CÓDIGO DE BARRAS DETECTADO ---\n" + matches[0];
+          }
+        }
+      } 
+      // Caso 2: Apenas código de barras fornecido manualmente
+      else if (barcode) {
+        processedText = `Código de barras inserido manualmente: ${barcode}`;
+        filename = `barcode-${Date.now()}.txt`;
+        fileContent = Buffer.from(processedText).toString('base64');
+      }
+      // Caso 3: Nenhum arquivo ou código de barras fornecido
+      else {
+        return res.status(400).json({ 
+          message: "Nenhum arquivo ou código de barras fornecido" 
+        });
       }
 
-      const fileBuffer = req.file.buffer;
-      const base64File = fileBuffer.toString("base64");
-      const fileId = createId();
-      const fileExtension = req.file.originalname.split(".").pop();
-      const filename = `${fileId}.${fileExtension}`;
-
-      // Process with OCR
-      const worker = await createWorker("por");
-      const result = await worker.recognize(fileBuffer);
-      await worker.terminate();
+      // Adiciona o código de barras manual ao texto processado, se fornecido
+      if (barcode && !processedText.includes(barcode)) {
+        processedText += `\n\n--- CÓDIGO DE BARRAS INSERIDO MANUALMENTE ---\n${barcode}`;
+      }
 
       const newInvoice = await storage.createInvoice({
         userId,
         filename,
-        fileContent: base64File,
-        processedText: result.data.text
+        fileContent,
+        processedText
       });
+
+      // Criar uma transação do tipo despesa para esta fatura
+      if (barcode) {
+        try {
+          // Tenta extrair valor do código de barras (posições específicas)
+          let amount = "0";
+          if (barcode.length >= 44) {
+            // Tenta extrair o valor do código de barras padrão de boleto
+            const valorField = barcode.substring(37, 47);
+            const valorNumerico = parseInt(valorField, 10) / 100; // Converte para decimal
+            if (!isNaN(valorNumerico)) {
+              amount = valorNumerico.toString();
+            }
+          }
+          
+          // Cria uma transação associada à fatura
+          await storage.createTransaction({
+            userId,
+            description: `Fatura #${newInvoice.id}`,
+            type: "DESPESA",
+            categoryId: 1, // Assume categoria padrão "Outros" ou "Contas"
+            amount,
+            date: new Date(),
+            status: "A_VENCER",
+            invoiceId: newInvoice.id
+          });
+        } catch (err) {
+          console.error("Erro ao criar transação para a fatura:", err);
+          // Não interrompe o fluxo se falhar na criação da transação
+        }
+      }
 
       res.status(201).json({ 
         id: newInvoice.id,
         filename: newInvoice.filename,
         processedText: newInvoice.processedText,
-        createdAt: newInvoice.createdAt
+        createdAt: newInvoice.createdAt,
+        barcode: barcode || null
       });
     } catch (error) {
       console.error(error);

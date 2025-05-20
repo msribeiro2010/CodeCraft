@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Table, 
   TableBody, 
@@ -20,13 +20,16 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, FileText } from 'lucide-react';
+import { Eye, FileText, Upload, Barcode } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
+import { InvoiceUploadModal } from './invoice-upload-modal';
 
 export function InvoiceList() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['/api/invoices'],
@@ -43,12 +46,27 @@ export function InvoiceList() {
   const viewInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
   };
+  
+  const handleUploadSuccess = () => {
+    // Recarregar a lista de faturas
+    queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+  };
 
   return (
     <>
       <Card className="shadow">
-        <CardHeader>
-          <CardTitle>Faturas Processadas</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Faturas Processadas</CardTitle>
+            <CardDescription>Gerencie suas faturas e boletos</CardDescription>
+          </div>
+          <Button 
+            onClick={() => setIsUploadModalOpen(true)}
+            className="flex items-center gap-1"
+          >
+            <Upload className="h-4 w-4" />
+            Nova Fatura
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
@@ -125,6 +143,13 @@ export function InvoiceList() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Modal de Upload de Faturas */}
+      <InvoiceUploadModal 
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={handleUploadSuccess}
+      />
     </>
   );
 }
