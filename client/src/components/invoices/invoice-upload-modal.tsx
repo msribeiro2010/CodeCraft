@@ -96,6 +96,8 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
     try {
       // Cria um FormData para enviar o arquivo e o código de barras
       const formData = new FormData();
+      
+      // Importante: o nome do campo aqui deve corresponder ao que o backend espera
       if (file) {
         formData.append('file', file);
       }
@@ -103,8 +105,17 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
         formData.append('barcode', barcode);
       }
       
-      // Envia para a API
-      const response = await apiRequest('POST', '/api/invoices/upload', formData);
+      // Envia para a API usando fetch diretamente para ter mais controle
+      const response = await fetch('/api/invoices/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro no servidor: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       toast({

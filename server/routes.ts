@@ -21,6 +21,8 @@ import MemoryStore from "memorystore";
 // Setup multer for file uploads
 const storage2 = multer.memoryStorage();
 const upload = multer({ storage: storage2 });
+// Use para qualquer campo
+const uploadAny = multer({ storage: storage2 }).any();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -420,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invoices/upload", isAuthenticated, upload.single("file"), async (req, res) => {
+  app.post("/api/invoices/upload", isAuthenticated, uploadAny, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const barcode = req.body.barcode;
@@ -430,11 +432,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let fileContent = '';
       
       // Caso 1: Upload de arquivo para processamento
-      if (req.file) {
-        const fileBuffer = req.file.buffer;
+      const uploadedFile = req.files && Array.isArray(req.files) && req.files.length > 0 ? req.files[0] : null;
+      
+      if (uploadedFile) {
+        const fileBuffer = uploadedFile.buffer;
         fileContent = fileBuffer.toString("base64");
         const fileId = createId();
-        const fileExtension = req.file.originalname.split(".").pop();
+        const fileExtension = uploadedFile.originalname.split(".").pop();
         filename = `${fileId}.${fileExtension}`;
 
         // Process with OCR
