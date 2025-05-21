@@ -6,10 +6,19 @@ import { signOut } from "firebase/auth";
 
 // Regular authentication functions
 export async function login(data: LoginInput) {
-  const res = await apiRequest("POST", "/api/auth/login", data);
-  const json = await res.json();
-  queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-  return json;
+  try {
+    const res = await apiRequest("POST", "/api/auth/login", data);
+    const json = await res.json();
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    return json;
+  } catch (error) {
+    console.error("Login error:", error);
+    // Mostrar mais detalhes sobre o erro para facilitar depuração
+    if (error instanceof Error) {
+      throw new Error(`Login error: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 export async function register(data: RegisterInput) {

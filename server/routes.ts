@@ -61,7 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       saveUninitialized: false,
       cookie: { 
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        secure: process.env.NODE_ENV === "production" 
+        secure: false, // Desativar secure: true para permitir cookies sem HTTPS
+        sameSite: 'lax' // Configuração mais permissiva para cookies entre domínios
       },
       store: new SessionStore({
         checkPeriod: 86400000 // 24 hours
