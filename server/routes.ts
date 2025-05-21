@@ -554,9 +554,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           processedText = "Arquivo PDF (não é possível extrair texto automaticamente)";
         } else {
           // Process with OCR (apenas para imagens)
-          const worker = await createWorker("por");
-          const result = await worker.recognize(fileBuffer);
-          await worker.terminate();
+          try {
+            const worker = await createWorker("por");
+            const result = await worker.recognize(fileBuffer);
+            await worker.terminate();
+            processedText = result.data.text;
+          } catch (err) {
+            console.error("Erro ao processar imagem com OCR:", err);
+            processedText = "Não foi possível processar o arquivo com OCR";
+          }
           
           processedText = result.data.text;
         }
