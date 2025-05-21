@@ -20,11 +20,12 @@ export function InvoiceViewModal({ isOpen, onClose, invoiceId }: InvoiceViewModa
       
       setIsLoading(true);
       try {
-        const invoiceData = await apiRequest(
-          `/api/invoices/${invoiceId}`,
-          { method: 'GET' },
-          'returnNull'
-        );
+        // Usar a query diretamente
+        const response = await fetch(`/api/invoices/${invoiceId}`);
+        if (!response.ok) {
+          throw new Error('Falha ao buscar fatura');
+        }
+        const invoiceData = await response.json();
         setInvoice(invoiceData);
       } catch (error) {
         console.error('Erro ao carregar fatura:', error);

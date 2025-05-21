@@ -463,6 +463,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar faturas" });
     }
   });
+  
+  // Endpoint para buscar uma fatura específica por ID
+  app.get("/api/invoices/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const invoiceId = parseInt(req.params.id);
+      
+      if (isNaN(invoiceId)) {
+        return res.status(400).json({ message: "ID de fatura inválido" });
+      }
+      
+      const invoice = await storage.getInvoiceById(invoiceId);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Fatura não encontrada" });
+      }
+      
+      // Verifica se a fatura pertence ao usuário atual
+      if (invoice.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      res.json(invoice);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao buscar fatura" });
+    }
+  });
 
   app.post("/api/invoices/upload", isAuthenticated, uploadAny, async (req, res) => {
     try {
