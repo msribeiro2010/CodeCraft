@@ -5,19 +5,42 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${res.status}: ${text || res.statusText}`);
+    if (!res.ok) {
+      // Tenta obter mais informações sobre o erro
+      let errorText;
+      try {
+        errorText = await res.text();
+      } catch (textError) {
+        errorText = res.statusText;
+      }
+      
+      // Mensagens mais amigáveis para erros comuns
+      if (res.status === 500) {
+        throw new Error(`Erro no servidor (500). Se continuar, tente novamente mais tarde ou contate o suporte.`);
+      } else if (res.status === 401) {
+        throw new Error(`Não autenticado. Por favor, faça login novamente.`);
+      } else {
+        throw new Error(`${res.status}: ${errorText || res.statusText}`);
+      }
+    }
+    
+    return res;
+  } catch (error) {
+    // Erros de rede/conexão
+    if (!(error instanceof Error) || !error.message.includes(":")) {
+      console.error("API Request error:", error);
+      throw new Error(`Erro de conexão com o servidor. Verifique sua conexão de internet.`);
+    }
+    throw error;
   }
-  
-  return res;
 }
 
 export async function updateUserSettings(data: {
