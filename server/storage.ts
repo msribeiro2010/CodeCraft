@@ -281,12 +281,11 @@ export class DatabaseStorage implements IStorage {
     let totalExpense = new Decimal(0);
     
     for (const transaction of transactions) {
-      if (transaction.status === 'PAGO') {
-        if (transaction.type === 'RECEITA') {
-          totalIncome = totalIncome.plus(transaction.amount);
-        } else {
-          totalExpense = totalExpense.plus(transaction.amount);
-        }
+      // Considerar todas as transações, independente do status (A_VENCER, PAGAR ou PAGO)
+      if (transaction.type === 'RECEITA') {
+        totalIncome = totalIncome.plus(transaction.amount);
+      } else {
+        totalExpense = totalExpense.plus(transaction.amount);
       }
     }
     
