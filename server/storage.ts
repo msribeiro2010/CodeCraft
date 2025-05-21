@@ -7,7 +7,7 @@ import {
   type Reminder, type InsertReminder
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, lte } from "drizzle-orm";
+import { eq, and, desc, gte, lte, asc } from "drizzle-orm";
 import { Decimal } from "decimal.js";
 
 // Interface for storage operations
@@ -104,7 +104,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(transactions)
       .where(eq(transactions.userId, userId))
-      .orderBy(desc(transactions.date));
+      .orderBy(transactions.date);
   }
 
   async getRecentTransactionsByUserId(userId: number, limit: number): Promise<Transaction[]> {
@@ -112,7 +112,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(transactions)
       .where(eq(transactions.userId, userId))
-      .orderBy(desc(transactions.date))
+      .orderBy(transactions.date)
       .limit(limit);
   }
 
@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
           lte(transactions.date, endDate)
         )
       )
-      .orderBy(desc(transactions.date));
+      .orderBy(transactions.date);
   }
 
   async updateTransaction(id: number, data: Partial<Transaction>): Promise<Transaction | undefined> {
