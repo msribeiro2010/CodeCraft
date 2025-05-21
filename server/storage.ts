@@ -131,7 +131,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTransactionsByDateRange(userId: number, startDate: Date, endDate: Date): Promise<Transaction[]> {
-    return db
+    console.log(`Buscando transações entre ${startDate.toISOString()} e ${endDate.toISOString()}`);
+    
+    const result = await db
       .select()
       .from(transactions)
       .where(
@@ -144,6 +146,10 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(transactions.date);
+      
+    console.log(`Encontradas ${result.length} transações`);
+    
+    return result;
   }
 
   async updateTransaction(id: number, data: Partial<Transaction>): Promise<Transaction | undefined> {
@@ -272,22 +278,42 @@ export class DatabaseStorage implements IStorage {
     totalIncome: Decimal;
     totalExpense: Decimal;
   }> {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-
-    const transactions = await this.getTransactionsByDateRange(userId, startDate, endDate);
+    // Definir o primeiro dia do mês
+    const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
     
+    // Definir o último dia do mês
+    const lastDay = new Date(year, month, 0);
+    const endDate = new Date(year, month - 1, lastDay.getDate(), 23, 59, 59, 999);
+    
+    console.log(`Calculando resumo do mês ${month}/${year}: de ${startDate.toISOString()} a ${endDate.toISOString()}`);
+    
+    // Obter transações do período manualmente
+    const allTransactions = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId));
+    
+    // Filtrar manualmente pelo período
+    const monthTransactions = allTransactions.filter(tr => {
+      const trDate = new Date(tr.date);
+      return trDate >= startDate && trDate <= endDate;
+    });
+    
+    console.log(`Encontradas ${monthTransactions.length} transações no período`);
+    
+    // Calcular totais
     let totalIncome = new Decimal(0);
     let totalExpense = new Decimal(0);
     
-    for (const transaction of transactions) {
-      // Considerar todas as transações, independente do status (A_VENCER, PAGAR ou PAGO)
-      if (transaction.type === 'RECEITA') {
-        totalIncome = totalIncome.plus(transaction.amount);
+    for (const tr of monthTransactions) {
+      if (tr.type === 'RECEITA') {
+        totalIncome = totalIncome.plus(tr.amount);
       } else {
-        totalExpense = totalExpense.plus(transaction.amount);
+        totalExpense = totalExpense.plus(tr.amount);
       }
     }
+    
+    console.log(`Totais calculados: Receitas=${totalIncome}, Despesas=${totalExpense}`);
     
     return {
       totalIncome,
