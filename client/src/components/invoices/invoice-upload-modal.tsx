@@ -56,11 +56,8 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
   };
 
   const handleScanBarcode = async () => {
-    if (!previewUrl) return;
-    
-    // Verificar se o previewUrl está disponível (o que significa que não é um PDF)
-    // PDFs não têm previewUrl, então este check já garante que só processaremos imagens
-    if (!previewUrl) {
+    // Verificamos se o arquivo atual é um PDF (sabemos que não tem previewUrl)
+    if (!previewUrl || (file && file.type === 'application/pdf')) {
       toast({
         title: "Não é possível escanear",
         description: "PDFs não permitem escaneamento automático de código de barras. Por favor, insira o código manualmente.",
@@ -74,7 +71,7 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
       // Inicializa Tesseract Worker para OCR
       const worker = await createWorker('por');
       
-      // Reconhecer texto da imagem
+      // Reconhecer texto da imagem, garantindo que é uma imagem e não um PDF
       const { data: { text } } = await worker.recognize(previewUrl);
       
       // Tenta encontrar um código de barras de boleto (linha digitável)
