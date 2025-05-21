@@ -19,21 +19,14 @@ export function Header() {
   const { user } = useAuthContext();
   const { toast } = useToast();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast({
-        title: 'Logout realizado com sucesso',
-        description: 'Você foi desconectado do sistema',
-      });
-    } catch (error) {
+  const handleLogout = () => {
+    // Redirecionar imediatamente para a página de login
+    window.location.href = '/';
+    
+    // Executar o logout no background
+    logout().catch(error => {
       console.error('Logout error:', error);
-      toast({
-        title: 'Erro ao fazer logout',
-        description: 'Ocorreu um erro ao tentar desconectar. Por favor, tente novamente.',
-        variant: 'destructive',
-      });
-    }
+    });
   };
 
   const getInitials = (name: string) => {
