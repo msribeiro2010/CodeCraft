@@ -420,6 +420,94 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
               )}
             />
             
+            {/* Seção de Upload de Fatura */}
+            <div className="border rounded-md p-4 mt-6">
+              <h3 className="text-sm font-medium mb-3">Fatura Associada</h3>
+              
+              {uploadedInvoiceId ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Fatura #{uploadedInvoiceId} vinculada</span>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setViewingInvoice(true)}
+                        type="button"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleRemoveInvoice}
+                        type="button"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {previewUrl ? (
+                    <div className="space-y-3">
+                      <div className="border rounded-md overflow-hidden">
+                        <img 
+                          src={previewUrl} 
+                          alt="Preview da fatura" 
+                          className="w-full object-contain max-h-[200px]"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleRemoveInvoice}
+                          type="button"
+                        >
+                          Remover
+                        </Button>
+                        <Button 
+                          onClick={handleUploadInvoice} 
+                          disabled={uploadingInvoice}
+                          size="sm"
+                          type="button"
+                        >
+                          {uploadingInvoice && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                          Fazer Upload
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-40 border border-dashed rounded-md">
+                      <div className="text-center">
+                        <FileImage className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground mb-2">Arraste uma imagem ou clique para selecionar</p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => fileInputRef.current?.click()}
+                          size="sm"
+                        >
+                          <FileUp className="h-4 w-4 mr-1" />
+                          Selecionar Fatura
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
             <DialogFooter>
               <Button
                 type="button"
@@ -437,5 +525,12 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
         </Form>
       </DialogContent>
     </Dialog>
+    
+    {/* Modal de visualização de fatura */}
+    <InvoiceViewModal
+      isOpen={viewingInvoice}
+      onClose={() => setViewingInvoice(false)}
+      invoiceId={uploadedInvoiceId}
+    />
   );
 }
