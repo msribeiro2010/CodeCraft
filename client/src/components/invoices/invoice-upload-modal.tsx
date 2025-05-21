@@ -25,6 +25,17 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      
+      // Verificar se o arquivo é uma imagem
+      if (!selectedFile.type.startsWith('image/')) {
+        toast({
+          title: "Formato não suportado",
+          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       setFile(selectedFile);
       
       // Criar URL para preview

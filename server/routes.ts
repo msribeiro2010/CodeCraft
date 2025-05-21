@@ -21,9 +21,33 @@ import MemoryStore from "memorystore";
 
 // Setup multer for file uploads
 const storage2 = multer.memoryStorage();
-const upload = multer({ storage: storage2 });
-// Use para qualquer campo
-const uploadAny = multer({ storage: storage2 }).any();
+
+// Configuração para aceitar apenas imagens
+const fileFilter = (req: any, file: any, cb: any) => {
+  // Aceitar apenas arquivos de imagem
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Apenas imagens são permitidas'), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage2,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  }
+});
+
+// Use para qualquer campo com filtro de imagem
+const uploadAny = multer({ 
+  storage: storage2, 
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  }
+}).any();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -451,6 +475,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Caso 1: Upload de arquivo para processamento
       const uploadedFile = req.files && Array.isArray(req.files) && req.files.length > 0 ? req.files[0] : null;
+      
+      // Verificação de tipo de arquivo
+      if (uploadedFile && !uploadedFile.mimetype.startsWith('image/')) {
+        return res.status(400).json({ 
+          message: "Formato não suportado", 
+          details: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados." 
+        });
+      }
       
       if (uploadedFile) {
         const fileBuffer = uploadedFile.buffer;
