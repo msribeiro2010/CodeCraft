@@ -131,9 +131,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTransaction(id: number, data: Partial<Transaction>): Promise<Transaction | undefined> {
+    // Garantir que a data seja um objeto Date válido
+    const updateData = {...data};
+    
+    if (updateData.date && typeof updateData.date !== 'object') {
+      try {
+        updateData.date = new Date(updateData.date);
+        
+        // Se a data for inválida, manter a data atual
+        if (isNaN(updateData.date.getTime())) {
+          const [currentTransaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+          updateData.date = currentTransaction.date;
+        }
+      } catch (error) {
+        console.error("Erro ao processar data:", error);
+        const [currentTransaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+        updateData.date = currentTransaction.date;
+      }
+    }
+    
     const [updatedTransaction] = await db
       .update(transactions)
-      .set(data)
+      .set(updateData)
       .where(eq(transactions.id, id))
       .returning();
     return updatedTransaction;

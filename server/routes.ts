@@ -505,7 +505,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invoices/upload", isAuthenticated, uploadAny, async (req, res) => {
+  // Configuração específica para aceitar PDFs e imagens
+  const invoiceUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(null, false);
+        return cb(new Error('Apenas imagens e PDFs são permitidos'));
+      }
+    }
+  }).any();
+
+  app.post("/api/invoices/upload", isAuthenticated, (req, res, next) => {
+    invoiceUpload(req, res, (err) => {
+      if (err) {
+        console.error("Erro no upload:", err);
+        return res.status(400).json({ 
+          message: "Erro de upload", 
+          details: err.message 
+        });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       const userId = (req.user as any).id;
       const barcode = req.body.barcode;
@@ -516,14 +541,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Caso 1: Upload de arquivo para processamento
       const uploadedFile = req.files && Array.isArray(req.files) && req.files.length > 0 ? req.files[0] : null;
-      
-      // Verificação de tipo de arquivo
-      if (uploadedFile && !uploadedFile.mimetype.startsWith('image/') && uploadedFile.mimetype !== 'application/pdf') {
-        return res.status(400).json({ 
-          message: "Formato não suportado", 
-          details: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc) ou PDF." 
-        });
-      }
       
       if (uploadedFile) {
         const fileBuffer = uploadedFile.buffer;
