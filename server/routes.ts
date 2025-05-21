@@ -549,15 +549,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const fileExtension = uploadedFile.originalname.split(".").pop();
         filename = `${fileId}.${fileExtension}`;
 
-        // Process with OCR
-        const worker = await createWorker("por");
-        const result = await worker.recognize(fileBuffer);
-        await worker.terminate();
-        
-        processedText = result.data.text;
+        // Verificar se é um PDF para não processar com OCR
+        if (uploadedFile.mimetype === 'application/pdf') {
+          processedText = "Arquivo PDF (não é possível extrair texto automaticamente)";
+        } else {
+          // Process with OCR (apenas para imagens)
+          const worker = await createWorker("por");
+          const result = await worker.recognize(fileBuffer);
+          await worker.terminate();
+          
+          processedText = result.data.text;
+        }
         
         // Tenta encontrar um código de barras se não foi fornecido manualmente
-        if (!barcode) {
+        // Apenas para imagens, não para PDFs
+        if (!barcode && uploadedFile.mimetype !== 'application/pdf') {
           const barcodeRegex = /(\d{5}[.]\d{5}\s\d{5}[.]\d{6}\s\d{5}[.]\d{6}\s\d{1}\s\d{14})|(\d{47})/g;
           const matches = processedText.match(barcodeRegex);
           
