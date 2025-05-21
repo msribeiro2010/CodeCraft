@@ -306,14 +306,17 @@ export class DatabaseStorage implements IStorage {
     let totalExpense = new Decimal(0);
     
     for (const tr of monthTransactions) {
+      // Para receitas, incluímos todas independente do status (como estava antes)
       if (tr.type === 'RECEITA') {
         totalIncome = totalIncome.plus(tr.amount);
-      } else {
+      } 
+      // Para despesas, incluímos APENAS as com status "PAGO"
+      else if (tr.status === 'PAGO') {
         totalExpense = totalExpense.plus(tr.amount);
       }
     }
     
-    console.log(`Totais calculados: Receitas=${totalIncome}, Despesas=${totalExpense}`);
+    console.log(`Totais calculados: Receitas=${totalIncome}, Despesas=${totalExpense} (apenas PAGAS)`);
     
     return {
       totalIncome,
