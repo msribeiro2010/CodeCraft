@@ -32,6 +32,7 @@ export const transactions = pgTable("transactions", {
   date: timestamp("date").notNull(),
   categoryId: integer("category_id").references(() => categories.id),
   description: text("description").notNull(),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
   notes: text("notes"),
   status: transactionStatusEnum("status").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

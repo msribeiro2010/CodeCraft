@@ -24,10 +24,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TransactionForm } from './transaction-form';
+import { InvoiceViewModal } from '../invoices/invoice-view-modal';
 import { deleteTransaction } from '@/lib/api';
 
 export function TransactionList() {
