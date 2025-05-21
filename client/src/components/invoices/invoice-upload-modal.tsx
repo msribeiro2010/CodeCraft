@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { createWorker } from 'tesseract.js';
 
@@ -120,12 +119,14 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
       // Importante: o nome do campo aqui deve corresponder ao que o backend espera
       if (file) {
         formData.append('file', file);
+        console.log("Tipo de arquivo:", file.type);
       }
+      
       if (barcode) {
         formData.append('barcode', barcode);
       }
       
-      // Envia para a API usando fetch diretamente para ter mais controle
+      // Envia para a API
       const response = await fetch('/api/invoices/upload', {
         method: 'POST',
         body: formData,
@@ -133,7 +134,9 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
       });
       
       if (!response.ok) {
-        throw new Error(`Erro no servidor: ${response.status}`);
+        const errorData = await response.json();
+        console.error("Erro detalhado:", errorData);
+        throw new Error(errorData.message || `Erro no servidor: ${response.status}`);
       }
       
       const data = await response.json();
