@@ -524,13 +524,13 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
           </form>
         </Form>
       </DialogContent>
+      {viewingInvoice && (
+        <InvoiceViewModal
+          isOpen={viewingInvoice}
+          onClose={() => setViewingInvoice(false)}
+          invoiceId={uploadedInvoiceId}
+        />
+      )}
     </Dialog>
-    
-    {/* Modal de visualização de fatura */}
-    <InvoiceViewModal
-      isOpen={viewingInvoice}
-      onClose={() => setViewingInvoice(false)}
-      invoiceId={uploadedInvoiceId}
-    />
   );
 }
