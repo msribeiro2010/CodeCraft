@@ -69,19 +69,47 @@ export function InvoiceViewModal({ isOpen, onClose, invoiceId }: InvoiceViewModa
               )}
               
               <div className="mt-4">
-                <p className="text-sm font-medium mb-2">Imagem da fatura:</p>
+                <p className="text-sm font-medium mb-2">Arquivo da fatura:</p>
                 {invoice.fileContent ? (
-                  <div className="border rounded-md overflow-hidden">
-                    <img 
-                      src={`data:image/jpeg;base64,${invoice.fileContent}`} 
-                      alt="Fatura" 
-                      className="w-full object-contain max-h-[400px]"
-                    />
-                  </div>
+                  invoice.filename && invoice.filename.toLowerCase().endsWith('pdf') ? (
+                    <div className="border rounded-md p-4 text-center">
+                      <FileText className="h-10 w-10 text-blue-500 mx-auto mb-2" />
+                      <p className="text-sm">Arquivo PDF</p>
+                      <p className="text-xs text-muted-foreground mb-3">{invoice.filename}</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Criar blob e URL para download
+                          const byteCharacters = atob(invoice.fileContent);
+                          const byteNumbers = new Array(byteCharacters.length);
+                          for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                          }
+                          const byteArray = new Uint8Array(byteNumbers);
+                          const blob = new Blob([byteArray], {type: 'application/pdf'});
+                          const url = URL.createObjectURL(blob);
+                          
+                          // Abrir em nova aba
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        Visualizar PDF
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="border rounded-md overflow-hidden">
+                      <img 
+                        src={`data:image/jpeg;base64,${invoice.fileContent}`} 
+                        alt="Fatura" 
+                        className="w-full object-contain max-h-[400px]"
+                      />
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center justify-center h-40 bg-muted rounded-md">
                     <FileText className="h-10 w-10 text-muted-foreground" />
-                    <p className="ml-2 text-sm text-muted-foreground">Imagem não disponível</p>
+                    <p className="ml-2 text-sm text-muted-foreground">Arquivo não disponível</p>
                   </div>
                 )}
               </div>

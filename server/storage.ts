@@ -241,12 +241,11 @@ export class DatabaseStorage implements IStorage {
     let balance = new Decimal(user.initialBalance || 0);
     
     for (const transaction of allTransactions) {
-      if (transaction.status === 'PAGO') {
-        if (transaction.type === 'RECEITA') {
-          balance = balance.plus(transaction.amount);
-        } else {
-          balance = balance.minus(transaction.amount);
-        }
+      // Consideramos todas as transações para o cálculo do saldo, independente do status
+      if (transaction.type === 'RECEITA') {
+        balance = balance.plus(transaction.amount);
+      } else {
+        balance = balance.minus(transaction.amount);
       }
     }
     
