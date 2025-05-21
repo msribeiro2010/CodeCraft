@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import { createTransaction, updateTransaction } from '@/lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createTransaction, updateTransaction, uploadInvoice } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,9 +34,10 @@ import {
 } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, FileUp, Loader2, Eye, FileImage } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { InvoiceViewModal } from '../invoices/invoice-view-modal';
 
 const transactionSchema = z.object({
   type: z.enum(['RECEITA', 'DESPESA']),
@@ -58,7 +59,14 @@ type TransactionFormProps = {
 
 export function TransactionForm({ isOpen, onClose, transactionToEdit }: TransactionFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadingInvoice, setUploadingInvoice] = useState(false);
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedInvoiceId, setUploadedInvoiceId] = useState<number | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Defina um tipo para as categorias
   type Category = {
@@ -82,6 +90,85 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
       status: transactionToEdit?.status || 'A_VENCER',
     },
   });
+  
+  // Inicializar o ID da fatura se estiver editando uma transação que já possui fatura
+  useEffect(() => {
+    if (transactionToEdit?.invoiceId) {
+      setUploadedInvoiceId(transactionToEdit.invoiceId);
+    }
+  }, [transactionToEdit]);
+  
+  // Função para lidar com o upload de arquivos
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      
+      // Verificar se o arquivo é uma imagem
+      if (!selectedFile.type.startsWith('image/')) {
+        toast({
+          title: "Formato não suportado",
+          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setInvoiceFile(selectedFile);
+      
+      // Criar URL para preview
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+    }
+  };
+  
+  // Função para fazer upload da fatura
+  const handleUploadInvoice = async () => {
+    if (!invoiceFile) {
+      toast({
+        title: "Erro",
+        description: "Selecione um arquivo para fazer upload",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUploadingInvoice(true);
+    try {
+      const response = await uploadInvoice(invoiceFile);
+      
+      if (response && response.id) {
+        setUploadedInvoiceId(response.id);
+        toast({
+          title: "Sucesso",
+          description: "Fatura carregada com sucesso",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload da fatura:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível fazer upload da fatura. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingInvoice(false);
+    }
+  };
+  
+  // Função para remover a fatura
+  const handleRemoveInvoice = () => {
+    setInvoiceFile(null);
+    setPreviewUrl(null);
+    if (!transactionToEdit) {
+      // Se for uma nova transação, podemos limpar o ID da fatura
+      setUploadedInvoiceId(null);
+    }
+    
+    // Limpa o campo de input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof transactionSchema>) {
     setIsLoading(true);
@@ -106,6 +193,8 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
         categoryId: parseInt(values.categoryId),
         // Envia a data como string ISO
         date: isoDate,
+        // Inclui o ID da fatura se houver uma associada
+        invoiceId: uploadedInvoiceId || undefined,
       };
 
       console.log('Enviando dados para o servidor:', formattedValues);
