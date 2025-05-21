@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 import { Loader2, FileText } from 'lucide-react';
 
 interface InvoiceViewModalProps {
@@ -20,9 +20,11 @@ export function InvoiceViewModal({ isOpen, onClose, invoiceId }: InvoiceViewModa
       
       setIsLoading(true);
       try {
-        const invoiceData = await apiRequest(`/api/invoices/${invoiceId}`, {
-          method: 'GET'
-        });
+        const invoiceData = await apiRequest(
+          `/api/invoices/${invoiceId}`,
+          { method: 'GET' },
+          'returnNull'
+        );
         setInvoice(invoiceData);
       } catch (error) {
         console.error('Erro ao carregar fatura:', error);

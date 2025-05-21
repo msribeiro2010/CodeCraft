@@ -35,13 +35,15 @@ export function TransactionList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<any>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const { toast } = useToast();
   
-  const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
+  const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
   });
   
-  const { data: categories, isLoading: isLoadingCategories } = useQuery({
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery<any[]>({
     queryKey: ['/api/categories'],
   });
   
@@ -153,10 +155,24 @@ export function TransactionList() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            {transaction.invoiceId && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedInvoiceId(transaction.invoiceId);
+                                  setIsInvoiceModalOpen(true);
+                                }}
+                                title="Visualizar Fatura"
+                              >
+                                <Eye className="h-4 w-4 text-blue-500" />
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="icon"
                               onClick={() => handleEditTransaction(transaction)}
+                              title="Editar Transação"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -164,6 +180,7 @@ export function TransactionList() {
                               variant="outline"
                               size="icon"
                               onClick={() => setTransactionToDelete(transaction)}
+                              title="Excluir Transação"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -207,6 +224,16 @@ export function TransactionList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal para visualização de faturas */}
+      <InvoiceViewModal 
+        isOpen={isInvoiceModalOpen}
+        onClose={() => {
+          setIsInvoiceModalOpen(false);
+          setSelectedInvoiceId(null);
+        }}
+        invoiceId={selectedInvoiceId}
+      />
     </>
   );
 }
