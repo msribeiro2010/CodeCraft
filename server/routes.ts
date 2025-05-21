@@ -416,8 +416,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!transaction || transaction.userId !== userId) {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
+      
+      // Tratamento da data para garantir que seja um objeto Date válido
+      const updateData = {...req.body};
+      
+      if (updateData.date) {
+        // Converter a string da data para um objeto Date
+        updateData.date = new Date(updateData.date);
+        
+        // Verificar se é uma data válida
+        if (isNaN(updateData.date.getTime())) {
+          return res.status(400).json({ message: "Data inválida fornecida" });
+        }
+      }
 
-      const updatedTransaction = await storage.updateTransaction(transactionId, req.body);
+      const updatedTransaction = await storage.updateTransaction(transactionId, updateData);
       if (!updatedTransaction) {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
