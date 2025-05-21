@@ -31,12 +31,6 @@ export default function Transactions() {
             )}
           </div>
           <div className="text-sm text-muted-foreground">
-            <div className="mb-1">
-              <span className="font-medium">Saldo Inicial:</span> {balanceData && new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-              }).format(parseFloat(balanceData.initialBalance))}
-            </div>
             <div>
               <span className="font-medium">Limite de Overdraft:</span> {balanceData && new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
