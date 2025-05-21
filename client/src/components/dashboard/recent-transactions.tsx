@@ -33,6 +33,7 @@ type Category = {
 export function RecentTransactions() {
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions/recent'],
+    refetchInterval: 3000, // Atualiza a cada 3 segundos
   });
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
