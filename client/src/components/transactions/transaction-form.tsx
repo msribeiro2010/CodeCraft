@@ -484,12 +484,12 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
                     <div className="flex items-center justify-center h-40 border border-dashed rounded-md">
                       <div className="text-center">
                         <FileImage className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground mb-2">Arraste uma imagem ou clique para selecionar</p>
+                        <p className="text-sm text-muted-foreground mb-2">Arraste uma imagem, PDF ou clique para selecionar</p>
                         <input
                           ref={fileInputRef}
                           type="file"
                           className="hidden"
-                          accept="image/*"
+                          accept="image/*, application/pdf"
                           onChange={handleFileChange}
                         />
                         <Button 

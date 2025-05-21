@@ -47,7 +47,11 @@ export function TransactionList() {
     queryKey: ['/api/categories'],
   });
   
-  const isLoading = isLoadingTransactions || isLoadingCategories;
+  const { data: balanceData, isLoading: isLoadingBalance } = useQuery({
+    queryKey: ['/api/dashboard/balance'],
+  });
+  
+  const isLoading = isLoadingTransactions || isLoadingCategories || isLoadingBalance;
 
   const formatCurrency = (value: string | number, type: 'RECEITA' | 'DESPESA') => {
     const prefix = type === 'RECEITA' ? '+ ' : '- ';
@@ -77,7 +81,13 @@ export function TransactionList() {
   };
 
   const handleEditTransaction = (transaction: any) => {
-    setTransactionToEdit(transaction);
+    // Garantir que a data seja tratada corretamente convertendo para objeto Date
+    const transactionToEdit = {
+      ...transaction,
+      date: new Date(transaction.date)
+    };
+    
+    setTransactionToEdit(transactionToEdit);
     setIsFormOpen(true);
   };
 

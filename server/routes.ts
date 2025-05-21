@@ -22,13 +22,13 @@ import MemoryStore from "memorystore";
 // Setup multer for file uploads
 const storage2 = multer.memoryStorage();
 
-// Configuração para aceitar apenas imagens
+// Configuração para aceitar imagens e PDFs
 const fileFilter = (req: any, file: any, cb: any) => {
-  // Aceitar apenas arquivos de imagem
-  if (file.mimetype.startsWith('image/')) {
+  // Aceitar arquivos de imagem e PDF
+  if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
-    cb(new Error('Apenas imagens são permitidas'), false);
+    cb(new Error('Apenas imagens e PDFs são permitidos'), false);
   }
 };
 
