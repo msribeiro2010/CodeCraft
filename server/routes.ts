@@ -563,13 +563,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Erro ao processar imagem com OCR:", err);
             processedText = "Não foi possível processar o arquivo com OCR";
           }
-          
-          processedText = result.data.text;
         }
         
         // Tenta encontrar um código de barras se não foi fornecido manualmente
         // Apenas para imagens, não para PDFs
-        if (!barcode && uploadedFile.mimetype !== 'application/pdf') {
+        if (!barcode && uploadedFile.mimetype !== 'application/pdf' && processedText) {
           const barcodeRegex = /(\d{5}[.]\d{5}\s\d{5}[.]\d{6}\s\d{5}[.]\d{6}\s\d{1}\s\d{14})|(\d{47})/g;
           const matches = processedText.match(barcodeRegex);
           
