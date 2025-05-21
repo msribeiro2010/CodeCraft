@@ -103,11 +103,11 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       
-      // Verificar se o arquivo é uma imagem
-      if (!selectedFile.type.startsWith('image/')) {
+      // Verificar se o arquivo é uma imagem ou PDF
+      if (!selectedFile.type.startsWith('image/') && selectedFile.type !== 'application/pdf') {
         toast({
           title: "Formato não suportado",
-          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados.",
+          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc) ou PDF.",
           variant: "destructive"
         });
         return;
@@ -115,9 +115,14 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
       
       setInvoiceFile(selectedFile);
       
-      // Criar URL para preview
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
+      // Criar URL para preview (apenas para imagens)
+      if (selectedFile.type.startsWith('image/')) {
+        const url = URL.createObjectURL(selectedFile);
+        setPreviewUrl(url);
+      } else {
+        // Para PDF, mostramos um ícone ou texto indicando que é um PDF
+        setPreviewUrl(null);
+      }
     }
   };
   
@@ -451,15 +456,25 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
                 </div>
               ) : (
                 <>
-                  {previewUrl ? (
+                  {invoiceFile ? (
                     <div className="space-y-3">
-                      <div className="border rounded-md overflow-hidden">
-                        <img 
-                          src={previewUrl} 
-                          alt="Preview da fatura" 
-                          className="w-full object-contain max-h-[200px]"
-                        />
-                      </div>
+                      {previewUrl ? (
+                        <div className="border rounded-md overflow-hidden">
+                          <img 
+                            src={previewUrl} 
+                            alt="Preview da fatura" 
+                            className="w-full object-contain max-h-[200px]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="border rounded-md p-4 flex items-center justify-center">
+                          <div className="text-center">
+                            <FileImage className="h-10 w-10 text-blue-500 mx-auto mb-2" />
+                            <p className="text-sm">Arquivo PDF selecionado</p>
+                            <p className="text-xs text-muted-foreground">{invoiceFile.name}</p>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex justify-end gap-2">
                         <Button 
                           variant="outline" 

@@ -26,11 +26,11 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       
-      // Verificar se o arquivo é uma imagem
-      if (!selectedFile.type.startsWith('image/')) {
+      // Verificar se o arquivo é uma imagem ou PDF
+      if (!selectedFile.type.startsWith('image/') && selectedFile.type !== 'application/pdf') {
         toast({
           title: "Formato não suportado",
-          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados.",
+          description: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc) ou PDF.",
           variant: "destructive"
         });
         return;
@@ -38,12 +38,21 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
       
       setFile(selectedFile);
       
-      // Criar URL para preview
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
-      
       // Reset barcode
       setBarcode('');
+      
+      // Para imagens, criar URL para preview e permitir escaneamento
+      if (selectedFile.type.startsWith('image/')) {
+        const url = URL.createObjectURL(selectedFile);
+        setPreviewUrl(url);
+      } else {
+        // Para PDFs, não podemos mostrar preview ou escanear códigos de barras
+        setPreviewUrl(null);
+        toast({
+          title: "PDF selecionado",
+          description: "PDFs não permitem escaneamento automático de código de barras. Você precisará inserir manualmente os detalhes da fatura.",
+        });
+      }
     }
   };
 
@@ -174,7 +183,7 @@ export function InvoiceUploadModal({ isOpen, onClose, onSuccess }: InvoiceUpload
             <Input
               id="invoice-file"
               type="file"
-              accept="image/*"
+              accept="image/*, application/pdf"
               onChange={handleFileChange}
               ref={fileInputRef}
               disabled={isLoading}
