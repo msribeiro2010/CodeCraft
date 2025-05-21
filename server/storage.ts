@@ -7,7 +7,7 @@ import {
   type Reminder, type InsertReminder
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, lte, asc } from "drizzle-orm";
+import { eq, and, desc, gte, lte, asc, not, like } from "drizzle-orm";
 import { Decimal } from "decimal.js";
 
 // Interface for storage operations
@@ -100,10 +100,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTransactionsByUserId(userId: number): Promise<Transaction[]> {
+    // Retorna as transações ordenadas por data (da mais antiga para a mais recente)
+    // Filtra para remover qualquer transação que possa representar um saldo inicial
     return db
       .select()
       .from(transactions)
-      .where(eq(transactions.userId, userId))
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          // Excluir transações com descrição "Saldo Inicial" se houver
+          not(like(transactions.description, '%Saldo Inicial%'))
+        )
+      )
       .orderBy(transactions.date);
   }
 
@@ -111,7 +119,13 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(transactions)
-      .where(eq(transactions.userId, userId))
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          // Excluir transações com descrição "Saldo Inicial" se houver
+          not(like(transactions.description, '%Saldo Inicial%'))
+        )
+      )
       .orderBy(transactions.date)
       .limit(limit);
   }
@@ -124,7 +138,9 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(transactions.userId, userId),
           gte(transactions.date, startDate),
-          lte(transactions.date, endDate)
+          lte(transactions.date, endDate),
+          // Excluir transações com descrição "Saldo Inicial" se houver
+          not(like(transactions.description, '%Saldo Inicial%'))
         )
       )
       .orderBy(transactions.date);
