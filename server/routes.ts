@@ -505,10 +505,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadedFile = req.files && Array.isArray(req.files) && req.files.length > 0 ? req.files[0] : null;
       
       // Verificação de tipo de arquivo
-      if (uploadedFile && !uploadedFile.mimetype.startsWith('image/')) {
+      if (uploadedFile && !uploadedFile.mimetype.startsWith('image/') && uploadedFile.mimetype !== 'application/pdf') {
         return res.status(400).json({ 
           message: "Formato não suportado", 
-          details: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc). PDFs não são suportados." 
+          details: "Por favor, faça upload apenas de arquivos de imagem (JPG, PNG, etc) ou PDF." 
         });
       }
       
