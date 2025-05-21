@@ -7,6 +7,7 @@ import { Decimal } from 'decimal.js';
 export function BalanceCard() {
   const { data, isLoading } = useQuery({
     queryKey: ['/api/dashboard/balance'],
+    refetchInterval: 3000, // Atualiza a cada 3 segundos
   });
 
   const formatCurrency = (value: string | number) => {
