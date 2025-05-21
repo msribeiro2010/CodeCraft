@@ -78,18 +78,47 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
     queryKey: ['/api/categories'],
   });
 
+  // Definindo valores padrão para o formulário
+  const defaultValues = {
+    type: 'DESPESA',
+    amount: '',
+    date: new Date(),
+    categoryId: '',
+    description: '',
+    notes: '',
+    status: 'A_VENCER' as const,
+  };
+
+  // Inicializa o formulário com resolver e valores padrão
   const form = useForm<z.infer<typeof transactionSchema>>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      type: transactionToEdit?.type || 'DESPESA',
-      amount: transactionToEdit?.amount?.toString() || '',
-      date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
-      categoryId: transactionToEdit?.categoryId?.toString() || '',
-      description: transactionToEdit?.description || '',
-      notes: transactionToEdit?.notes || '',
-      status: transactionToEdit?.status || 'A_VENCER',
-    },
+    defaultValues: transactionToEdit ? {
+      type: transactionToEdit.type,
+      amount: transactionToEdit.amount?.toString(),
+      date: new Date(transactionToEdit.date),
+      categoryId: transactionToEdit.categoryId?.toString(),
+      description: transactionToEdit.description,
+      notes: transactionToEdit.notes || '',
+      status: transactionToEdit.status,
+    } : defaultValues,
   });
+  
+  // Atualiza o formulário quando transactionToEdit muda
+  useEffect(() => {
+    if (transactionToEdit) {
+      form.reset({
+        type: transactionToEdit.type,
+        amount: transactionToEdit.amount?.toString(),
+        date: new Date(transactionToEdit.date),
+        categoryId: transactionToEdit.categoryId?.toString(),
+        description: transactionToEdit.description,
+        notes: transactionToEdit.notes || '',
+        status: transactionToEdit.status,
+      });
+    } else {
+      form.reset(defaultValues);
+    }
+  }, [transactionToEdit, form]);
   
   // Inicializar o ID da fatura se estiver editando uma transação que já possui fatura
   useEffect(() => {
