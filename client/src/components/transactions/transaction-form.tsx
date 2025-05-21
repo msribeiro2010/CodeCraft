@@ -445,7 +445,6 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="A_VENCER">A Vencer</SelectItem>
-                      <SelectItem value="PAGAR">Pagar</SelectItem>
                       <SelectItem value="PAGO">Pago</SelectItem>
                     </SelectContent>
                   </Select>

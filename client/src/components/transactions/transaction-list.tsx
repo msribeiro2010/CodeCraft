@@ -73,8 +73,9 @@ export function TransactionList() {
         return <Badge variant="outline" className="bg-green-100 text-green-800">Pago</Badge>;
       case 'A_VENCER':
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
+      // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes, mas com visual semelhante ao A_VENCER
       case 'PAGAR':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Pagar</Badge>;
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
       default:
         return null;
     }
