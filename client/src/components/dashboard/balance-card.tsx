@@ -29,6 +29,20 @@ export function BalanceCard() {
     
     return balance.lessThan(initialBalance);
   };
+  
+  // Calcula o valor do cheque especial sendo utilizado (quanto do negativo)
+  const getOverdraftUsed = () => {
+    if (!data || !isNegative()) return new Decimal(0);
+    return new Decimal(data.balance).abs();
+  };
+  
+  // Calcula quanto ainda resta de limite disponível no cheque especial
+  const getOverdraftRemaining = () => {
+    if (!data) return new Decimal(0);
+    const overdraftLimit = new Decimal(data.overdraftLimit);
+    const overdraftUsed = getOverdraftUsed();
+    return overdraftLimit.minus(overdraftUsed);
+  };
 
   return (
     <Card className="bg-white overflow-hidden shadow rounded-lg">
@@ -58,9 +72,17 @@ export function BalanceCard() {
           {isLoading ? (
             <Skeleton className="h-4 w-40" />
           ) : isNegative() ? (
-            <span className="font-medium text-red-600 flex items-center">
-              <TrendingDown className="mr-1 h-4 w-4" />
-              Você está usando {formatCurrency(data.overdraftLimit)} de cheque especial!
+            <span className="font-medium text-red-600 flex flex-col">
+              <div className="flex items-center">
+                <TrendingDown className="mr-1 h-4 w-4" />
+                Você está usando {formatCurrency(getOverdraftUsed())} do seu cheque especial!
+              </div>
+              <div className="text-xs mt-1 ml-5">
+                Limite restante: {formatCurrency(getOverdraftRemaining())} de {formatCurrency(data.overdraftLimit)}
+              </div>
+              <div className="text-xs mt-1 ml-5 text-orange-600">
+                Atenção: Despesas futuras podem comprometer seu orçamento.
+              </div>
             </span>
           ) : isUsingOverdraft() ? (
             <span className="font-medium text-amber-600 flex items-center">
