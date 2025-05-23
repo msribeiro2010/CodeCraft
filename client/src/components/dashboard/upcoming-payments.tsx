@@ -31,6 +31,15 @@ export function UpcomingPayments() {
     return `Vence ${formatDistance(date, today, { addSuffix: true, locale: ptBR })}`;
   };
 
+  const isToday = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    
+    return date.getTime() === today.getTime();
+  };
+
   return (
     <Card className="bg-white overflow-hidden shadow rounded-lg">
       <CardHeader>
@@ -45,27 +54,50 @@ export function UpcomingPayments() {
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
           </div>
-        ) : data && data.length > 0 ? (
+        ) : data && Array.isArray(data) && data.length > 0 ? (
           <div className="flow-root">
             <ul role="list" className="divide-y divide-neutral-200">
               {data.map((transaction: any) => (
-                <li key={transaction.id} className="py-4 px-6">
+                <li 
+                  key={transaction.id} 
+                  className={`py-4 px-6 transition-all duration-300 ${
+                    isToday(transaction.date) 
+                      ? 'bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 animate-pulse' 
+                      : 'hover:bg-neutral-50'
+                  }`}
+                >
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <span className="h-8 w-8 rounded-full bg-red-600 text-white flex items-center justify-center">
+                      <span className={`h-8 w-8 rounded-full text-white flex items-center justify-center transition-all duration-300 ${
+                        isToday(transaction.date)
+                          ? 'bg-red-600 animate-bounce shadow-lg shadow-red-300'
+                          : 'bg-red-600'
+                      }`}>
                         <TrendingDown className="h-5 w-5" />
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">
+                      <p className={`text-sm font-medium truncate ${
+                        isToday(transaction.date) 
+                          ? 'text-red-800 font-bold' 
+                          : 'text-neutral-900'
+                      }`}>
                         {transaction.description}
                       </p>
-                      <p className="text-sm text-neutral-500 truncate">
+                      <p className={`text-sm truncate ${
+                        isToday(transaction.date)
+                          ? 'text-red-600 font-semibold animate-pulse'
+                          : 'text-neutral-500'
+                      }`}>
                         {getRelativeDateText(transaction.date)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-red-600">
+                      <p className={`text-sm font-semibold ${
+                        isToday(transaction.date)
+                          ? 'text-red-700 font-bold text-lg animate-pulse'
+                          : 'text-red-600'
+                      }`}>
                         {formatCurrency(transaction.amount)}
                       </p>
                     </div>
