@@ -39,8 +39,10 @@ export function AuthFormSimple() {
         description: 'Bem-vindo ao FinControl!',
       });
       
-      // Redirecionar para o dashboard após login bem-sucedido
-      window.location.href = '/dashboard';
+      // Aguardar um pouco e então redirecionar
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
       toast({

@@ -54,10 +54,12 @@ export async function getCurrentUser() {
     });
     
     if (!res.ok) {
-      throw new Error("Failed to fetch user");
+      console.warn("Auth check failed:", res.status);
+      return { isAuthenticated: false };
     }
     
-    return res.json();
+    const data = await res.json();
+    return data;
   } catch (error) {
     console.error("Error fetching current user:", error);
     return { isAuthenticated: false };

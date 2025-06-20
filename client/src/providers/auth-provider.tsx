@@ -43,8 +43,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       const data = await getCurrentUser();
-      setIsAuthenticated(data.isAuthenticated);
-      setUser(data.isAuthenticated ? data.user : null);
+      
+      if (data && data.isAuthenticated) {
+        setIsAuthenticated(true);
+        setUser(data.user);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
     } catch (error) {
       console.error('Error refreshing auth state:', error);
       setIsAuthenticated(false);
@@ -54,26 +60,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Listen for Firebase auth state changes
+  // Listen for Firebase auth state changes (simplified)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setFirebaseUser(firebaseUser);
-      
-      // If we have a Firebase user but no session in our backend
-      // We need to trigger a backend session creation
-      if (firebaseUser && !isAuthenticated) {
-        await refreshAuth();
-      }
-      
-      // If we have no Firebase user, ensure our session is also cleared
-      if (!firebaseUser && isAuthenticated) {
-        await refreshAuth();
-      }
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
-  }, [isAuthenticated]);
+  }, []);
 
   // Check authentication status on mount
   useEffect(() => {
