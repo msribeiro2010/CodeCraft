@@ -88,6 +88,19 @@ export async function deleteTransaction(id: number) {
   return json;
 }
 
+export async function deleteAllTransactions() {
+  const res = await apiRequest("DELETE", "/api/transactions");
+  const json = await res.json();
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/recent"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/upcoming"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/balance"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/monthly-summary"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/monthly-summary/last-6-months"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+  return json;
+}
+
 export async function uploadInvoice(file: File) {
   const formData = new FormData();
   formData.append("invoice", file);

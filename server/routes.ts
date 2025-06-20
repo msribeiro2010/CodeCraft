@@ -466,6 +466,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/transactions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      const success = await storage.deleteAllTransactions(userId);
+      if (!success) {
+        return res.status(500).json({ message: "Erro ao limpar transações" });
+      }
+
+      res.json({ message: "Todas as transações foram excluídas com sucesso" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao limpar transações" });
+    }
+  });
+
   // Invoice routes
   app.get("/api/invoices", isAuthenticated, async (req, res) => {
     try {

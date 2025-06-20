@@ -30,6 +30,7 @@ export interface IStorage {
   getTransactionsByDateRange(userId: number, startDate: Date, endDate: Date): Promise<Transaction[]>;
   updateTransaction(id: number, data: Partial<Transaction>): Promise<Transaction | undefined>;
   deleteTransaction(id: number): Promise<boolean>;
+  deleteAllTransactions(userId: number): Promise<boolean>;
   
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
@@ -183,6 +184,24 @@ export class DatabaseStorage implements IStorage {
   async deleteTransaction(id: number): Promise<boolean> {
     const result = await db.delete(transactions).where(eq(transactions.id, id)).returning();
     return result.length > 0;
+  }
+
+  async deleteAllTransactions(userId: number): Promise<boolean> {
+    try {
+      // Delete all reminders for the user's transactions first
+      await db.delete(reminders).where(eq(reminders.userId, userId));
+      
+      // Delete all invoices for the user
+      await db.delete(invoices).where(eq(invoices.userId, userId));
+      
+      // Delete all transactions for the user
+      await db.delete(transactions).where(eq(transactions.userId, userId));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting all transactions:', error);
+      return false;
+    }
   }
 
   // Invoice operations
