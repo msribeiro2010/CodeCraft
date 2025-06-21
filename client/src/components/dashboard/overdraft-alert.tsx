@@ -44,25 +44,21 @@ export function OverdraftAlert() {
   const totalIncome = parseFloat(monthlyData.totalIncome);
   const totalExpense = parseFloat(monthlyData.totalExpense);
 
-  // Calcula o déficit (quanto está gastando além da receita)
-  const deficit = totalExpense - totalIncome;
-  const isInDeficit = deficit > 0;
-  
-  // Verifica se está usando o cheque especial
+  // Se o saldo atual é negativo, já está usando o cheque especial
   const overdraftUsed = currentBalance < 0 ? Math.abs(currentBalance) : 0;
   
   // Verifica se ultrapassou completamente o cheque especial
-  const totalExceeded = deficit > overdraftLimit;
-  const amountExceeded = totalExceeded ? deficit - overdraftLimit : 0;
+  const isOverTotalLimit = overdraftUsed > overdraftLimit;
+  const amountExceeded = isOverTotalLimit ? overdraftUsed - overdraftLimit : 0;
   
   // Limite restante do cheque especial
   const overdraftRemaining = overdraftLimit - overdraftUsed;
   
-  // Se o déficit é maior que o cheque especial, está gastando além do limite total
-  const isOverTotalLimit = deficit > overdraftLimit;
+  // Se está usando o cheque especial (saldo negativo)
+  const isUsingOverdraft = overdraftUsed > 0;
   
-  // Percentual de uso do cheque especial baseado no déficit
-  const overdraftUsagePercent = overdraftLimit > 0 ? Math.min((deficit / overdraftLimit) * 100, 100) : 0;
+  // Percentual de uso do cheque especial baseado no saldo atual
+  const overdraftUsagePercent = overdraftLimit > 0 ? Math.min((overdraftUsed / overdraftLimit) * 100, 100) : 0;
 
   return (
     <Card className="bg-white shadow rounded-lg">
@@ -90,11 +86,11 @@ export function OverdraftAlert() {
         )}
 
         {/* Alerta se está usando cheque especial mas ainda dentro do limite */}
-        {isInDeficit && !isOverTotalLimit && (
+        {isUsingOverdraft && !isOverTotalLimit && (
           <Alert className="border-orange-500 bg-orange-50">
             <TrendingDown className="h-4 w-4 text-orange-600" />
             <AlertDescription className="text-orange-800 font-medium">
-              <strong>Você está usando {formatCurrency(deficit)} do seu cheque especial!</strong>
+              <strong>Você está usando {formatCurrency(overdraftUsed)} do seu cheque especial!</strong>
               <br />
               Limite restante: {formatCurrency(overdraftRemaining)} de {formatCurrency(overdraftLimit)}
               <br />
@@ -104,7 +100,7 @@ export function OverdraftAlert() {
         )}
 
         {/* Status geral em verde se tudo está ok */}
-        {!isInDeficit && (
+        {!isUsingOverdraft && (
           <Alert className="border-green-500 bg-green-50">
             <Shield className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
@@ -124,10 +120,10 @@ export function OverdraftAlert() {
               <span className="text-neutral-600">Despesa do mês:</span>
               <span className="font-medium text-red-600">{formatCurrency(totalExpense)}</span>
             </div>
-            {isInDeficit && (
+            {isUsingOverdraft && (
               <div className="flex justify-between border-t pt-2">
-                <span className="text-neutral-600">Déficit (usando do cheque especial):</span>
-                <span className="font-bold text-red-600">{formatCurrency(deficit)}</span>
+                <span className="text-neutral-600">Usando do cheque especial:</span>
+                <span className="font-bold text-red-600">{formatCurrency(overdraftUsed)}</span>
               </div>
             )}
           </div>
