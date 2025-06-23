@@ -95,18 +95,20 @@ export function OverdraftAlert() {
 
         {/* Alerta se está usando cheque especial mas ainda dentro do limite */}
         {isUsingOverdraft && !isOverTotalLimit && (
-          <div className="relative p-6 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl text-white">
+          <div className="relative p-6 bg-gradient-to-r from-amber-700 to-orange-700 rounded-2xl text-white shadow-lg">
             <div className="absolute top-4 right-4">
-              <TrendingDown className="h-6 w-6 opacity-80" />
+              <TrendingDown className="h-6 w-6 opacity-90" />
             </div>
-            <div className="space-y-3">
-              <h3 className="text-lg font-bold">⚡ Usando Cheque Especial</h3>
-              <div className="text-orange-100 space-y-2">
-                <p className="font-semibold">Valor utilizado: {formatCurrency(overdraftUsed)}</p>
-                <p className="text-sm">Limite restante: {formatCurrency(overdraftRemaining)} de {formatCurrency(overdraftLimit)}</p>
-                <p className="text-sm bg-white/20 p-3 rounded-lg">
-                  🟡 Monitore os gastos para manter o controle
-                </p>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">⚡ Usando Cheque Especial</h3>
+              <div className="space-y-3">
+                <p className="font-bold text-lg text-white">Valor utilizado: {formatCurrency(overdraftUsed)}</p>
+                <p className="text-base font-semibold text-amber-100">Limite restante: {formatCurrency(overdraftRemaining)} de {formatCurrency(overdraftLimit)}</p>
+                <div className="bg-black/30 p-4 rounded-lg border border-white/20">
+                  <p className="text-base font-semibold text-white">
+                    🟡 Monitore os gastos para manter o controle
+                  </p>
+                </div>
               </div>
             </div>
           </div>
