@@ -141,3 +141,10 @@ export async function createCategory(data: { name: string }) {
   queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
   return json;
 }
+
+export async function deleteInvoice(id: number) {
+  const res = await apiRequest("DELETE", `/api/invoices/${id}`);
+  const json = await res.json();
+  queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+  return json;
+}

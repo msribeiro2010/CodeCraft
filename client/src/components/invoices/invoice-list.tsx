@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   Table, 
@@ -19,20 +19,52 @@ import {
   DialogTitle,
   DialogClose
 } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, FileText, Upload, Barcode } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, FileText, Upload, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import { InvoiceUploadModal } from './invoice-upload-modal';
+import { deleteInvoice } from '@/lib/api';
 
 export function InvoiceList() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<any>(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['/api/invoices'],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteInvoice(id),
+    onSuccess: () => {
+      toast({
+        title: "Fatura excluída",
+        description: "A fatura foi excluída com sucesso",
+      });
+      setInvoiceToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a fatura",
+        variant: "destructive",
+      });
+    },
   });
 
   const formatDate = (dateString: string) => {
@@ -50,6 +82,11 @@ export function InvoiceList() {
   const handleUploadSuccess = () => {
     // Recarregar a lista de faturas
     queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    deleteMutation.mutate(invoiceToDelete.id);
   };
 
   return (
@@ -98,14 +135,25 @@ export function InvoiceList() {
                         </TableCell>
                         <TableCell>{formatDate(invoice.createdAt)}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => viewInvoice(invoice)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Visualizar
-                          </Button>
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => viewInvoice(invoice)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Visualizar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setInvoiceToDelete(invoice)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Excluir
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -150,6 +198,29 @@ export function InvoiceList() {
         onClose={() => setIsUploadModalOpen(false)}
         onSuccess={handleUploadSuccess}
       />
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!invoiceToDelete} onOpenChange={() => setInvoiceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Fatura</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a fatura "{invoiceToDelete?.filename}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteInvoice}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

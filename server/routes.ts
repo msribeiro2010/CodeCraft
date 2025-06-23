@@ -661,6 +661,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invoice delete route
+  app.delete("/api/invoices/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const invoiceId = parseInt(req.params.id);
+      
+      // Verify invoice belongs to user
+      const invoice = await storage.getInvoiceById(invoiceId);
+      if (!invoice || invoice.userId !== userId) {
+        return res.status(404).json({ message: "Fatura não encontrada" });
+      }
+
+      // Delete the invoice
+      const success = await storage.deleteInvoice(invoiceId);
+      if (!success) {
+        return res.status(500).json({ message: "Erro ao excluir fatura" });
+      }
+
+      res.json({ message: "Fatura excluída com sucesso" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao excluir fatura" });
+    }
+  });
+
   // Reminder routes
   app.get("/api/reminders", isAuthenticated, async (req, res) => {
     try {
