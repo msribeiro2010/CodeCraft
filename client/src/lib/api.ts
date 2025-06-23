@@ -78,8 +78,11 @@ export async function updateTransaction(id: number, data: any) {
 }
 
 export async function updateTransactionStatus(id: number, status: 'A_VENCER' | 'PAGO') {
+  console.log('API: Chamando updateTransactionStatus', { id, status });
   const res = await apiRequest("PATCH", `/api/transactions/${id}/status`, { status });
+  console.log('API: Response status:', res.status);
   const json = await res.json();
+  console.log('API: Response data:', json);
   queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
   queryClient.invalidateQueries({ queryKey: ["/api/transactions/recent"] });
   queryClient.invalidateQueries({ queryKey: ["/api/transactions/upcoming"] });

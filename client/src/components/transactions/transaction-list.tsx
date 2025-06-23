@@ -45,15 +45,19 @@ export function TransactionList() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: 'A_VENCER' | 'PAGO' }) => 
-      updateTransactionStatus(id, status),
-    onSuccess: () => {
+    mutationFn: ({ id, status }: { id: number; status: 'A_VENCER' | 'PAGO' }) => {
+      console.log('Executando mutation para ID:', id, 'Status:', status);
+      return updateTransactionStatus(id, status);
+    },
+    onSuccess: (data) => {
+      console.log('Mutation success:', data);
       toast({
         title: "Status atualizado",
         description: "O status da transação foi alterado com sucesso",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Mutation error:', error);
       toast({
         title: "Erro",
         description: "Não foi possível alterar o status da transação",
@@ -88,7 +92,9 @@ export function TransactionList() {
 
   const getStatusBadge = (status: string, transactionId: number) => {
     const handleStatusClick = (currentStatus: string) => {
+      console.log('Clicou no status:', currentStatus, 'ID:', transactionId);
       const newStatus = currentStatus === 'PAGO' ? 'A_VENCER' : 'PAGO';
+      console.log('Mudando para:', newStatus);
       statusMutation.mutate({ id: transactionId, status: newStatus });
     };
 
@@ -100,7 +106,11 @@ export function TransactionList() {
           <Badge 
             variant="outline" 
             className={`bg-green-100 text-green-800 ${badgeClass}`}
-            onClick={() => handleStatusClick(status)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStatusClick(status);
+            }}
             title="Clique para marcar como A Vencer"
           >
             Pago
@@ -111,7 +121,11 @@ export function TransactionList() {
           <Badge 
             variant="outline" 
             className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
-            onClick={() => handleStatusClick(status)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStatusClick(status);
+            }}
             title="Clique para marcar como Pago"
           >
             A Vencer
@@ -123,7 +137,11 @@ export function TransactionList() {
           <Badge 
             variant="outline" 
             className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
-            onClick={() => handleStatusClick('A_VENCER')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStatusClick('A_VENCER');
+            }}
             title="Clique para marcar como Pago"
           >
             A Vencer
