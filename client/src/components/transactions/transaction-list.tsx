@@ -92,60 +92,60 @@ export function TransactionList() {
 
   const getStatusBadge = (status: string, transactionId: number) => {
     const handleStatusClick = (currentStatus: string) => {
-      console.log('Clicou no status:', currentStatus, 'ID:', transactionId);
+      console.log('🔥 CLIQUE DETECTADO! Status:', currentStatus, 'ID:', transactionId);
       const newStatus = currentStatus === 'PAGO' ? 'A_VENCER' : 'PAGO';
-      console.log('Mudando para:', newStatus);
+      console.log('🔄 Mudando para:', newStatus);
       statusMutation.mutate({ id: transactionId, status: newStatus });
     };
 
-    const badgeClass = "cursor-pointer hover:opacity-80 transition-opacity";
+    const badgeClass = "cursor-pointer hover:opacity-80 transition-opacity select-none";
     
     switch (status) {
       case 'PAGO':
         return (
-          <Badge 
-            variant="outline" 
-            className={`bg-green-100 text-green-800 ${badgeClass}`}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${badgeClass}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              console.log('🎯 Badge PAGO clicado!');
               handleStatusClick(status);
             }}
             title="Clique para marcar como A Vencer"
           >
             Pago
-          </Badge>
+          </span>
         );
       case 'A_VENCER':
         return (
-          <Badge 
-            variant="outline" 
-            className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ${badgeClass}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              console.log('🎯 Badge A_VENCER clicado!');
               handleStatusClick(status);
             }}
             title="Clique para marcar como Pago"
           >
             A Vencer
-          </Badge>
+          </span>
         );
       // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes
       case 'PAGAR':
         return (
-          <Badge 
-            variant="outline" 
-            className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ${badgeClass}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              console.log('🎯 Badge PAGAR clicado!');
               handleStatusClick('A_VENCER');
             }}
             title="Clique para marcar como Pago"
           >
             A Vencer
-          </Badge>
+          </span>
         );
       default:
         return null;
@@ -231,7 +231,7 @@ export function TransactionList() {
                         <TableCell className="font-medium">{transaction.description}</TableCell>
                         <TableCell>{getCategoryName(transaction.categoryId)}</TableCell>
                         <TableCell>{format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                        <TableCell>{getStatusBadge(transaction.status, transaction.id)}</TableCell>
+                        <TableCell className="cursor-default">{getStatusBadge(transaction.status, transaction.id)}</TableCell>
                         <TableCell className={transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}>
                           {formatCurrency(transaction.amount, transaction.type)}
                         </TableCell>
