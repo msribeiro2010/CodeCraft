@@ -619,36 +619,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedText
       });
 
-      // Criar uma transação do tipo despesa para esta fatura
-      if (barcode) {
-        try {
-          // Tenta extrair valor do código de barras (posições específicas)
-          let amount = "0";
-          if (barcode.length >= 44) {
-            // Tenta extrair o valor do código de barras padrão de boleto
-            const valorField = barcode.substring(37, 47);
-            const valorNumerico = parseInt(valorField, 10) / 100; // Converte para decimal
-            if (!isNaN(valorNumerico)) {
-              amount = valorNumerico.toString();
-            }
-          }
-          
-          // Cria uma transação associada à fatura
-          await storage.createTransaction({
-            userId,
-            description: `Fatura #${newInvoice.id}`,
-            type: "DESPESA",
-            categoryId: 1, // Assume categoria padrão "Outros" ou "Contas"
-            amount,
-            date: new Date(),
-            status: "A_VENCER",
-            invoiceId: newInvoice.id
-          });
-        } catch (err) {
-          console.error("Erro ao criar transação para a fatura:", err);
-          // Não interrompe o fluxo se falhar na criação da transação
-        }
-      }
+      // REMOVIDO: Não criar transação automática no upload de fatura
+      // A fatura deve ser associada manualmente a uma transação específica
+      // ou o usuário deve criar uma nova transação e anexar a fatura
 
       res.status(201).json({ 
         id: newInvoice.id,

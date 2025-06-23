@@ -227,8 +227,8 @@ export function TransactionForm({ isOpen, onClose, transactionToEdit }: Transact
         categoryId: parseInt(values.categoryId),
         // Envia a data como string ISO
         date: isoDate,
-        // Inclui o ID da fatura se houver uma associada
-        invoiceId: uploadedInvoiceId || undefined,
+        // Inclui o ID da fatura se houver uma associada (apenas se foi anexada nesta transação)
+        invoiceId: uploadedInvoiceId || (transactionToEdit?.invoiceId || undefined),
       };
 
       console.log('Enviando dados para o servidor:', formattedValues);
