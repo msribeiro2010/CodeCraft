@@ -77,6 +77,17 @@ export async function updateTransaction(id: number, data: any) {
   return json;
 }
 
+export async function updateTransactionStatus(id: number, status: 'A_VENCER' | 'PAGO') {
+  const res = await apiRequest("PATCH", `/api/transactions/${id}/status`, { status });
+  const json = await res.json();
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/recent"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/upcoming"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/balance"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/monthly-summary"] });
+  return json;
+}
+
 export async function deleteTransaction(id: number) {
   const res = await apiRequest("DELETE", `/api/transactions/${id}`);
   const json = await res.json();

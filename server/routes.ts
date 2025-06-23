@@ -443,6 +443,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick status update route
+  app.patch("/api/transactions/:id/status", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const transactionId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      // Validate status
+      if (!['A_VENCER', 'PAGO'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const existingTransaction = await storage.getTransactionById(transactionId);
+      if (!existingTransaction || existingTransaction.userId !== userId) {
+        return res.status(404).json({ message: "Transação não encontrada" });
+      }
+
+      const updatedTransaction = await storage.updateTransaction(transactionId, { status });
+      res.json(updatedTransaction);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao atualizar status da transação" });
+    }
+  });
+
   app.delete("/api/transactions/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any).id;

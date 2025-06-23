@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TransactionForm } from './transaction-form';
 import { InvoiceViewModal } from '../invoices/invoice-view-modal';
-import { deleteTransaction } from '@/lib/api';
+import { deleteTransaction, updateTransactionStatus } from '@/lib/api';
 
 export function TransactionList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -38,9 +38,28 @@ export function TransactionList() {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: 'A_VENCER' | 'PAGO' }) => 
+      updateTransactionStatus(id, status),
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado",
+        description: "O status da transação foi alterado com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o status da transação",
+        variant: "destructive",
+      });
+    },
   });
   
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery<any[]>({
@@ -67,15 +86,49 @@ export function TransactionList() {
     return category ? category.name : '';
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, transactionId: number) => {
+    const handleStatusClick = (currentStatus: string) => {
+      const newStatus = currentStatus === 'PAGO' ? 'A_VENCER' : 'PAGO';
+      statusMutation.mutate({ id: transactionId, status: newStatus });
+    };
+
+    const badgeClass = "cursor-pointer hover:opacity-80 transition-opacity";
+    
     switch (status) {
       case 'PAGO':
-        return <Badge variant="outline" className="bg-green-100 text-green-800">Pago</Badge>;
+        return (
+          <Badge 
+            variant="outline" 
+            className={`bg-green-100 text-green-800 ${badgeClass}`}
+            onClick={() => handleStatusClick(status)}
+            title="Clique para marcar como A Vencer"
+          >
+            Pago
+          </Badge>
+        );
       case 'A_VENCER':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
-      // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes, mas com visual semelhante ao A_VENCER
+        return (
+          <Badge 
+            variant="outline" 
+            className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
+            onClick={() => handleStatusClick(status)}
+            title="Clique para marcar como Pago"
+          >
+            A Vencer
+          </Badge>
+        );
+      // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes
       case 'PAGAR':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
+        return (
+          <Badge 
+            variant="outline" 
+            className={`bg-yellow-100 text-yellow-800 ${badgeClass}`}
+            onClick={() => handleStatusClick('A_VENCER')}
+            title="Clique para marcar como Pago"
+          >
+            A Vencer
+          </Badge>
+        );
       default:
         return null;
     }
@@ -160,7 +213,7 @@ export function TransactionList() {
                         <TableCell className="font-medium">{transaction.description}</TableCell>
                         <TableCell>{getCategoryName(transaction.categoryId)}</TableCell>
                         <TableCell>{format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                        <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                        <TableCell>{getStatusBadge(transaction.status, transaction.id)}</TableCell>
                         <TableCell className={transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}>
                           {formatCurrency(transaction.amount, transaction.type)}
                         </TableCell>
