@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TransactionForm } from './transaction-form';
 import { InvoiceViewModal } from '../invoices/invoice-view-modal';
-import { deleteTransaction } from '@/lib/api';
+import { deleteTransaction, updateTransactionStatus } from '@/lib/api';
 
 export function TransactionList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -38,9 +38,32 @@ export function TransactionList() {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: 'A_VENCER' | 'PAGO' }) => {
+      console.log('Executando mutation para ID:', id, 'Status:', status);
+      return updateTransactionStatus(id, status);
+    },
+    onSuccess: (data) => {
+      console.log('Mutation success:', data);
+      toast({
+        title: "Status atualizado",
+        description: "O status da transação foi alterado com sucesso",
+      });
+    },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar o status da transação",
+        variant: "destructive",
+      });
+    },
   });
   
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery<any[]>({
@@ -67,15 +90,63 @@ export function TransactionList() {
     return category ? category.name : '';
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, transactionId: number) => {
+    const handleStatusClick = (currentStatus: string) => {
+      console.log('🔥 CLIQUE DETECTADO! Status:', currentStatus, 'ID:', transactionId);
+      const newStatus = currentStatus === 'PAGO' ? 'A_VENCER' : 'PAGO';
+      console.log('🔄 Mudando para:', newStatus);
+      statusMutation.mutate({ id: transactionId, status: newStatus });
+    };
+
+    const badgeClass = "cursor-pointer hover:opacity-80 transition-opacity select-none";
+    
     switch (status) {
       case 'PAGO':
-        return <Badge variant="outline" className="bg-green-100 text-green-800">Pago</Badge>;
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ${badgeClass}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🎯 Badge PAGO clicado!');
+              handleStatusClick(status);
+            }}
+            title="Clique para marcar como A Vencer"
+          >
+            Pago
+          </span>
+        );
       case 'A_VENCER':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
-      // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes, mas com visual semelhante ao A_VENCER
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ${badgeClass}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🎯 Badge A_VENCER clicado!');
+              handleStatusClick(status);
+            }}
+            title="Clique para marcar como Pago"
+          >
+            A Vencer
+          </span>
+        );
+      // Mantendo o caso 'PAGAR' para compatibilidade com dados existentes
       case 'PAGAR':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">A Vencer</Badge>;
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ${badgeClass}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🎯 Badge PAGAR clicado!');
+              handleStatusClick('A_VENCER');
+            }}
+            title="Clique para marcar como Pago"
+          >
+            A Vencer
+          </span>
+        );
       default:
         return null;
     }
@@ -160,7 +231,7 @@ export function TransactionList() {
                         <TableCell className="font-medium">{transaction.description}</TableCell>
                         <TableCell>{getCategoryName(transaction.categoryId)}</TableCell>
                         <TableCell>{format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
-                        <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                        <TableCell className="cursor-default">{getStatusBadge(transaction.status, transaction.id)}</TableCell>
                         <TableCell className={transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}>
                           {formatCurrency(transaction.amount, transaction.type)}
                         </TableCell>

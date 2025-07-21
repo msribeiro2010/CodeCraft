@@ -41,74 +41,88 @@ export function UpcomingPayments() {
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium text-neutral-900">
-          A Vencer em Breve
-        </CardTitle>
+    <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-0 shadow-xl rounded-2xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white pb-6">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-white/20 rounded-lg">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <CardTitle className="text-xl font-bold">A Vencer em Breve</CardTitle>
+            <p className="text-purple-100 text-sm mt-1">Próximos vencimentos</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
           <div className="p-6 space-y-4">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
           </div>
         ) : data && Array.isArray(data) && data.length > 0 ? (
-          <div className="flow-root">
-            <ul role="list" className="divide-y divide-neutral-200">
-              {data.map((transaction: any) => (
-                <li 
-                  key={transaction.id} 
-                  className={`py-4 px-6 transition-all duration-300 ${
-                    isToday(transaction.date) 
-                      ? 'bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 animate-pulse' 
-                      : 'hover:bg-neutral-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <span className={`h-8 w-8 rounded-full text-white flex items-center justify-center transition-all duration-300 ${
-                        isToday(transaction.date)
-                          ? 'bg-red-600 animate-bounce shadow-lg shadow-red-300'
-                          : 'bg-red-600'
-                      }`}>
-                        <TrendingDown className="h-5 w-5" />
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${
-                        isToday(transaction.date) 
-                          ? 'text-red-800 font-bold' 
-                          : 'text-neutral-900'
-                      }`}>
-                        {transaction.description}
-                      </p>
-                      <p className={`text-sm truncate ${
-                        isToday(transaction.date)
-                          ? 'text-red-600 font-semibold animate-pulse'
-                          : 'text-neutral-500'
-                      }`}>
-                        {getRelativeDateText(transaction.date)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-semibold ${
-                        isToday(transaction.date)
-                          ? 'text-red-700 font-bold text-lg animate-pulse'
-                          : 'text-red-600'
-                      }`}>
-                        {formatCurrency(transaction.amount)}
-                      </p>
+          <div className="p-4 space-y-4">
+            {data.map((transaction: any) => (
+              <div 
+                key={transaction.id} 
+                className={`p-4 rounded-xl transition-all duration-300 ${
+                  isToday(transaction.date) 
+                    ? 'bg-gradient-to-r from-red-100 to-orange-100 border-2 border-red-300 shadow-lg animate-pulse' 
+                    : 'bg-white hover:shadow-md border border-purple-200 hover:border-purple-300'
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className={`p-3 rounded-xl shadow-sm ${
+                      isToday(transaction.date)
+                        ? 'bg-gradient-to-br from-red-500 to-red-600 animate-bounce shadow-lg shadow-red-300'
+                        : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                    }`}>
+                      <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-base font-semibold truncate ${
+                      isToday(transaction.date) 
+                        ? 'text-red-800 font-bold' 
+                        : 'text-slate-800'
+                    }`}>
+                      {transaction.description}
+                    </p>
+                    <p className={`text-sm truncate ${
+                      isToday(transaction.date)
+                        ? 'text-red-600 font-semibold animate-pulse'
+                        : 'text-slate-600'
+                    }`}>
+                      {getRelativeDateText(transaction.date)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${
+                      isToday(transaction.date)
+                        ? 'text-red-700 text-xl animate-pulse'
+                        : 'text-red-600 text-lg'
+                    }`}>
+                      {formatCurrency(transaction.amount)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="py-8 px-6 text-center">
-            <p className="text-neutral-500">Não há pagamentos a vencer em breve</p>
+          <div className="text-center py-10">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-slate-600 font-medium">Nenhum pagamento próximo</p>
+            <p className="text-slate-400 text-sm mt-1">Você está em dia!</p>
           </div>
         )}
       </CardContent>

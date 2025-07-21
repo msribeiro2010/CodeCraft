@@ -37,6 +37,7 @@ export interface IStorage {
   getInvoicesByUserId(userId: number): Promise<Invoice[]>;
   getInvoiceById(id: number): Promise<Invoice | undefined>;
   updateInvoice(id: number, data: Partial<Invoice>): Promise<Invoice | undefined>;
+  deleteInvoice(id: number): Promise<boolean>;
   
   // Reminder operations
   createReminder(reminder: InsertReminder): Promise<Reminder>;
@@ -230,6 +231,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(invoices.id, id))
       .returning();
     return updatedInvoice;
+  }
+
+  async deleteInvoice(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(invoices).where(eq(invoices.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      return false;
+    }
   }
 
   // Reminder operations

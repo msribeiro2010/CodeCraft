@@ -443,6 +443,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick status update route
+  app.patch("/api/transactions/:id/status", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const transactionId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      // Validate status
+      if (!['A_VENCER', 'PAGO'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+
+      const existingTransaction = await storage.getTransactionById(transactionId);
+      if (!existingTransaction || existingTransaction.userId !== userId) {
+        return res.status(404).json({ message: "Transação não encontrada" });
+      }
+
+      const updatedTransaction = await storage.updateTransaction(transactionId, { status });
+      res.json(updatedTransaction);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao atualizar status da transação" });
+    }
+  });
+
   app.delete("/api/transactions/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any).id;
@@ -619,36 +644,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedText
       });
 
-      // Criar uma transação do tipo despesa para esta fatura
-      if (barcode) {
-        try {
-          // Tenta extrair valor do código de barras (posições específicas)
-          let amount = "0";
-          if (barcode.length >= 44) {
-            // Tenta extrair o valor do código de barras padrão de boleto
-            const valorField = barcode.substring(37, 47);
-            const valorNumerico = parseInt(valorField, 10) / 100; // Converte para decimal
-            if (!isNaN(valorNumerico)) {
-              amount = valorNumerico.toString();
-            }
-          }
-          
-          // Cria uma transação associada à fatura
-          await storage.createTransaction({
-            userId,
-            description: `Fatura #${newInvoice.id}`,
-            type: "DESPESA",
-            categoryId: 1, // Assume categoria padrão "Outros" ou "Contas"
-            amount,
-            date: new Date(),
-            status: "A_VENCER",
-            invoiceId: newInvoice.id
-          });
-        } catch (err) {
-          console.error("Erro ao criar transação para a fatura:", err);
-          // Não interrompe o fluxo se falhar na criação da transação
-        }
-      }
+      // REMOVIDO: Não criar transação automática no upload de fatura
+      // A fatura deve ser associada manualmente a uma transação específica
+      // ou o usuário deve criar uma nova transação e anexar a fatura
 
       res.status(201).json({ 
         id: newInvoice.id,
@@ -660,6 +658,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erro ao processar fatura" });
+    }
+  });
+
+  // Invoice delete route
+  app.delete("/api/invoices/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const invoiceId = parseInt(req.params.id);
+      
+      // Verify invoice belongs to user
+      const invoice = await storage.getInvoiceById(invoiceId);
+      if (!invoice || invoice.userId !== userId) {
+        return res.status(404).json({ message: "Fatura não encontrada" });
+      }
+
+      // Delete the invoice
+      const success = await storage.deleteInvoice(invoiceId);
+      if (!success) {
+        return res.status(500).json({ message: "Erro ao excluir fatura" });
+      }
+
+      res.json({ message: "Fatura excluída com sucesso" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Erro ao excluir fatura" });
     }
   });
 

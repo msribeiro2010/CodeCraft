@@ -45,58 +45,59 @@ export function BalanceCard() {
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg">
-      <CardContent className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <CreditCard className="h-6 w-6 text-neutral-600" />
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-neutral-500 truncate">Saldo Atual</dt>
-              <dd className="flex items-baseline">
-                {isLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <div className={`text-2xl font-semibold ${isNegative() ? 'text-red-600' : 'text-neutral-900'}`}>
-                    {formatCurrency(data.balance)}
-                  </div>
-                )}
-              </dd>
-            </dl>
+    <Card className="bg-gradient-to-br from-slate-50 to-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className={`p-3 rounded-xl ${isNegative() ? 'bg-red-100' : 'bg-blue-100'}`}>
+                <CreditCard className={`h-6 w-6 ${isNegative() ? 'text-red-600' : 'text-blue-600'}`} />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-slate-600">Saldo Atual</h3>
+                <div className="flex items-center space-x-2 mt-1">
+                  {isNegative() && <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>}
+                </div>
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <Skeleton className="h-10 w-36" />
+            ) : (
+              <div className={`text-3xl font-bold ${isNegative() ? 'text-red-600' : 'text-slate-800'}`}>
+                {formatCurrency(data.balance)}
+              </div>
+            )}
           </div>
         </div>
-      </CardContent>
-      <div className={`px-5 py-3 ${isNegative() ? 'bg-red-50' : 'bg-neutral-50'}`}>
-        <div className="text-sm">
+        
+        {/* Status indicator */}
+        <div className="mt-4 pt-4 border-t border-slate-200">
           {isLoading ? (
             <Skeleton className="h-4 w-40" />
           ) : isNegative() ? (
-            <span className="font-medium text-red-600 flex flex-col">
-              <div className="flex items-center">
-                <TrendingDown className="mr-1 h-4 w-4" />
-                Você está usando {formatCurrency(getOverdraftUsed())} do seu cheque especial!
+            <div className="space-y-2">
+              <div className="flex items-center text-red-600 font-medium">
+                <TrendingDown className="mr-2 h-4 w-4" />
+                Usando cheque especial
               </div>
-              <div className="text-xs mt-1 ml-5">
-                Limite restante: {formatCurrency(getOverdraftRemaining())} de {formatCurrency(data.overdraftLimit)}
+              <div className="text-sm text-slate-600">
+                {formatCurrency(getOverdraftUsed())} de {formatCurrency(data.overdraftLimit)}
               </div>
-              <div className="text-xs mt-1 ml-5 text-orange-600">
-                Atenção: Despesas futuras podem comprometer seu orçamento.
-              </div>
-            </span>
+            </div>
           ) : isUsingOverdraft() ? (
-            <span className="font-medium text-amber-600 flex items-center">
-              <CircleDollarSign className="mr-1 h-4 w-4" />
-              Cuidado! Seu saldo está diminuindo.
-            </span>
+            <div className="flex items-center text-amber-600 font-medium">
+              <CircleDollarSign className="mr-2 h-4 w-4" />
+              Atenção aos gastos
+            </div>
           ) : (
-            <span className="font-medium text-green-600 flex items-center">
-              <TrendingUp className="mr-1 h-4 w-4" />
-              Você está no positivo!
-            </span>
+            <div className="flex items-center text-green-600 font-medium">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Situação estável
+            </div>
           )}
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 }
@@ -115,35 +116,40 @@ export function IncomeCard() {
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg">
-      <CardContent className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-neutral-500 truncate">Receitas (Mês)</dt>
-              <dd className="flex items-baseline">
-                {isLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <div className="text-2xl font-semibold text-neutral-900">
-                    {formatCurrency(data?.totalIncome)}
-                  </div>
-                )}
-              </dd>
-            </dl>
+    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group hover:scale-105">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                <TrendingUp className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-slate-600">Receitas do Mês</h3>
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-1"></div>
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <Skeleton className="h-10 w-36" />
+            ) : (
+              <div className="text-3xl font-bold text-slate-800 mb-2">
+                {formatCurrency(data?.totalIncome)}
+              </div>
+            )}
+            
+            <a 
+              href="/transactions" 
+              className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-700 transition-colors group"
+            >
+              Ver detalhes
+              <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </a>
           </div>
         </div>
       </CardContent>
-      <div className="bg-neutral-50 px-5 py-3">
-        <div className="text-sm">
-          <a href="/transactions" className="font-medium text-primary hover:text-primary-dark">
-            Ver detalhes
-          </a>
-        </div>
-      </div>
     </Card>
   );
 }
@@ -162,35 +168,40 @@ export function ExpenseCard() {
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg">
-      <CardContent className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <TrendingDown className="h-6 w-6 text-red-600" />
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-neutral-500 truncate">Despesas (Mês)</dt>
-              <dd className="flex items-baseline">
-                {isLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <div className="text-2xl font-semibold text-neutral-900">
-                    {formatCurrency(data?.totalExpense)}
-                  </div>
-                )}
-              </dd>
-            </dl>
+    <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group hover:scale-105">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg">
+                <TrendingDown className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-slate-600">Despesas do Mês</h3>
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-1"></div>
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <Skeleton className="h-10 w-36" />
+            ) : (
+              <div className="text-3xl font-bold text-slate-800 mb-2">
+                {formatCurrency(data?.totalExpense)}
+              </div>
+            )}
+            
+            <a 
+              href="/transactions" 
+              className="inline-flex items-center text-sm font-medium text-red-600 hover:text-red-700 transition-colors group"
+            >
+              Ver detalhes
+              <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </a>
           </div>
         </div>
       </CardContent>
-      <div className="bg-neutral-50 px-5 py-3">
-        <div className="text-sm">
-          <a href="/transactions" className="font-medium text-primary hover:text-primary-dark">
-            Ver detalhes
-          </a>
-        </div>
-      </div>
     </Card>
   );
 }
@@ -209,35 +220,40 @@ export function OverdraftCard() {
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg">
-      <CardContent className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <CircleDollarSign className="h-6 w-6 text-amber-500" />
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-neutral-500 truncate">Cheque Especial</dt>
-              <dd className="flex items-baseline">
-                {isLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <div className="text-2xl font-semibold text-neutral-900">
-                    {formatCurrency(data?.overdraftLimit)}
-                  </div>
-                )}
-              </dd>
-            </dl>
+    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group hover:scale-105">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg">
+                <CircleDollarSign className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-slate-600">Cheque Especial</h3>
+                <div className="w-2 h-2 bg-amber-500 rounded-full mt-1"></div>
+              </div>
+            </div>
+            
+            {isLoading ? (
+              <Skeleton className="h-10 w-36" />
+            ) : (
+              <div className="text-3xl font-bold text-slate-800 mb-2">
+                {formatCurrency(data?.overdraftLimit)}
+              </div>
+            )}
+            
+            <a 
+              href="/settings" 
+              className="inline-flex items-center text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors group"
+            >
+              Ajustar limite
+              <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </a>
           </div>
         </div>
       </CardContent>
-      <div className="bg-neutral-50 px-5 py-3">
-        <div className="text-sm">
-          <a href="/settings" className="font-medium text-primary hover:text-primary-dark">
-            Ajustar limite
-          </a>
-        </div>
-      </div>
     </Card>
   );
 }

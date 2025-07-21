@@ -61,114 +61,168 @@ export function OverdraftAlert() {
   const overdraftUsagePercent = overdraftLimit > 0 ? Math.min((overdraftUsed / overdraftLimit) * 100, 100) : 0;
 
   return (
-    <Card className="bg-white shadow rounded-lg">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium text-neutral-900 flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-blue-600" />
-          Monitoramento de Limite
+    <Card className="bg-gradient-to-br from-white to-slate-50 border-0 shadow-xl rounded-2xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white pb-6">
+        <CardTitle className="text-xl font-bold flex items-center">
+          <div className="p-2 bg-white/20 rounded-lg mr-3">
+            <Shield className="h-6 w-6" />
+          </div>
+          Monitoramento Financeiro Inteligente
         </CardTitle>
+        <p className="text-indigo-100 text-sm mt-2">
+          Acompanhe seus limites em tempo real
+        </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-6 space-y-6">
         {/* Alerta principal se ultrapassou completamente o limite */}
         {isOverTotalLimit && (
-          <Alert className="border-red-500 bg-red-50 animate-pulse">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800 font-medium">
-              <strong>Você está usando o valor acima do cheque especial e da receita</strong>
-              <br />
-              <strong>Você está usando {formatCurrency(amountExceeded)} além do seu cheque especial!</strong>
-              <br />
-              Limite restante: -{formatCurrency(Math.abs(overdraftRemaining))} de {formatCurrency(overdraftLimit)}
-              <br />
-              <strong>Atenção: Despesas futuras podem comprometer seu orçamento.</strong>
-            </AlertDescription>
-          </Alert>
+          <div className="relative p-6 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl text-white animate-pulse">
+            <div className="absolute top-4 right-4">
+              <AlertTriangle className="h-8 w-8 opacity-80" />
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold">⚠️ Limite Ultrapassado</h3>
+              <div className="text-red-100 space-y-2">
+                <p className="font-semibold">Você excedeu seu cheque especial em {formatCurrency(amountExceeded)}</p>
+                <p className="text-sm">Limite restante: -{formatCurrency(Math.abs(overdraftRemaining))} de {formatCurrency(overdraftLimit)}</p>
+                <p className="text-sm bg-white/20 p-3 rounded-lg">
+                  🔴 Ação necessária: Revisar gastos urgentemente
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Alerta se está usando cheque especial mas ainda dentro do limite */}
         {isUsingOverdraft && !isOverTotalLimit && (
-          <Alert className="border-orange-500 bg-orange-50">
-            <TrendingDown className="h-4 w-4 text-orange-600" />
-            <AlertDescription className="text-orange-800 font-medium">
-              <strong>Você está usando {formatCurrency(overdraftUsed)} do seu cheque especial!</strong>
-              <br />
-              Limite restante: {formatCurrency(overdraftRemaining)} de {formatCurrency(overdraftLimit)}
-              <br />
-              Atenção: Monitore seus gastos para não ultrapassar o limite.
-            </AlertDescription>
-          </Alert>
+          <div className="relative p-6 bg-gradient-to-r from-amber-700 to-orange-700 rounded-2xl text-white shadow-lg">
+            <div className="absolute top-4 right-4">
+              <TrendingDown className="h-6 w-6 opacity-90" />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">⚡ Usando Cheque Especial</h3>
+              <div className="space-y-3">
+                <p className="font-bold text-lg text-white">Valor utilizado: {formatCurrency(overdraftUsed)}</p>
+                <p className="text-base font-semibold text-amber-100">Limite restante: {formatCurrency(overdraftRemaining)} de {formatCurrency(overdraftLimit)}</p>
+                <div className="bg-black/30 p-4 rounded-lg border border-white/20">
+                  <p className="text-base font-semibold text-white">
+                    🟡 Monitore os gastos para manter o controle
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Status geral em verde se tudo está ok */}
         {!isUsingOverdraft && (
-          <Alert className="border-green-500 bg-green-50">
-            <Shield className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Suas finanças estão dentro do limite seguro. Você tem {formatCurrency(overdraftLimit)} de cheque especial disponível.
-            </AlertDescription>
-          </Alert>
+          <div className="relative p-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white">
+            <div className="absolute top-4 right-4">
+              <Shield className="h-6 w-6 opacity-80" />
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold">✅ Situação Estável</h3>
+              <div className="text-green-100 space-y-2">
+                <p className="font-semibold">Finanças dentro do limite seguro</p>
+                <p className="text-sm bg-white/20 p-3 rounded-lg">
+                  🟢 Cheque especial disponível: {formatCurrency(overdraftLimit)}
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Informações detalhadas */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Receita do mês:</span>
-              <span className="font-medium text-green-600">{formatCurrency(totalIncome)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Despesa do mês:</span>
-              <span className="font-medium text-red-600">{formatCurrency(totalExpense)}</span>
-            </div>
-            {isUsingOverdraft && (
-              <div className="flex justify-between border-t pt-2">
-                <span className="text-neutral-600">Usando do cheque especial:</span>
-                <span className="font-bold text-red-600">{formatCurrency(overdraftUsed)}</span>
+        {/* Informações detalhadas com cards modernos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl space-y-3">
+            <h4 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Movimentação Mensal</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                <span className="text-slate-600 flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  Receitas
+                </span>
+                <span className="font-bold text-green-600">{formatCurrency(totalIncome)}</span>
               </div>
-            )}
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                <span className="text-slate-600 flex items-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                  Despesas
+                </span>
+                <span className="font-bold text-red-600">{formatCurrency(totalExpense)}</span>
+              </div>
+              {isUsingOverdraft && (
+                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <span className="text-amber-700 flex items-center">
+                    <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
+                    Cheque especial usado
+                  </span>
+                  <span className="font-bold text-amber-700">{formatCurrency(overdraftUsed)}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Saldo atual:</span>
-              <span className={`font-medium ${currentBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(currentBalance)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Limite cheque especial:</span>
-              <span className="font-medium text-blue-600">{formatCurrency(overdraftLimit)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-600">Cheque especial restante:</span>
-              <span className={`font-medium ${overdraftRemaining >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                {overdraftRemaining >= 0 ? formatCurrency(overdraftRemaining) : `-${formatCurrency(Math.abs(overdraftRemaining))}`}
-              </span>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-4 rounded-xl space-y-3">
+            <h4 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Status Atual</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                <span className="text-slate-600">Saldo atual</span>
+                <span className={`font-bold ${currentBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(currentBalance)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                <span className="text-slate-600">Limite total</span>
+                <span className="font-bold text-blue-600">{formatCurrency(overdraftLimit)}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                <span className="text-slate-600">Disponível</span>
+                <span className={`font-bold ${overdraftRemaining >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                  {overdraftRemaining >= 0 ? formatCurrency(overdraftRemaining) : `-${formatCurrency(Math.abs(overdraftRemaining))}`}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Barra de progresso do cheque especial */}
+        {/* Barra de progresso moderna do cheque especial */}
         {overdraftLimit > 0 && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Uso do cheque especial:</span>
-              <span className="font-medium">
-                {overdraftUsagePercent > 100 ? '100%+ (EXCEDEU)' : `${overdraftUsagePercent.toFixed(1)}%`}
+          <div className="bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-slate-700 font-medium">Uso do Cheque Especial</span>
+              <span className={`font-bold text-lg ${
+                overdraftUsagePercent > 100 ? 'text-red-600' :
+                overdraftUsagePercent > 80 ? 'text-amber-600' : 'text-blue-600'
+              }`}>
+                {overdraftUsagePercent > 100 ? '100%+ ⚠️' : `${overdraftUsagePercent.toFixed(1)}%`}
               </span>
             </div>
-            <div className="w-full bg-neutral-200 rounded-full h-3">
-              <div 
-                className={`h-3 rounded-full transition-all duration-300 ${
-                  overdraftUsagePercent > 100 ? 'bg-red-600 animate-pulse' :
-                  overdraftUsagePercent > 80 ? 'bg-red-500' :
-                  overdraftUsagePercent > 50 ? 'bg-orange-500' : 'bg-blue-500'
-                }`}
-                style={{ width: `${Math.min(overdraftUsagePercent, 100)}%` }}
-              />
+            
+            <div className="relative">
+              <div className="w-full bg-slate-200 rounded-full h-4 shadow-inner">
+                <div 
+                  className={`h-4 rounded-full transition-all duration-500 shadow-sm ${
+                    overdraftUsagePercent > 100 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' :
+                    overdraftUsagePercent > 80 ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
+                    overdraftUsagePercent > 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
+                    'bg-gradient-to-r from-blue-400 to-blue-600'
+                  }`}
+                  style={{ width: `${Math.min(overdraftUsagePercent, 100)}%` }}
+                />
+                
+                {/* Marcadores na barra */}
+                <div className="absolute top-0 left-1/2 w-0.5 h-4 bg-white/50 transform -translate-x-px"></div>
+                <div className="absolute top-0" style={{ left: '80%' }}>
+                  <div className="w-0.5 h-4 bg-white/70"></div>
+                </div>
+              </div>
+              
               {overdraftUsagePercent > 100 && (
-                <div className="text-xs text-red-600 font-bold mt-1 text-center">
-                  LIMITE ULTRAPASSADO!
+                <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
+                  <div className="text-sm text-red-800 font-semibold text-center">
+                    🚨 LIMITE ULTRAPASSADO - Ação Necessária!
+                  </div>
                 </div>
               )}
             </div>

@@ -77,6 +77,20 @@ export async function updateTransaction(id: number, data: any) {
   return json;
 }
 
+export async function updateTransactionStatus(id: number, status: 'A_VENCER' | 'PAGO') {
+  console.log('API: Chamando updateTransactionStatus', { id, status });
+  const res = await apiRequest("PATCH", `/api/transactions/${id}/status`, { status });
+  console.log('API: Response status:', res.status);
+  const json = await res.json();
+  console.log('API: Response data:', json);
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/recent"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/transactions/upcoming"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/balance"] });
+  queryClient.invalidateQueries({ queryKey: ["/api/dashboard/monthly-summary"] });
+  return json;
+}
+
 export async function deleteTransaction(id: number) {
   const res = await apiRequest("DELETE", `/api/transactions/${id}`);
   const json = await res.json();
@@ -125,5 +139,12 @@ export async function createCategory(data: { name: string }) {
   const res = await apiRequest("POST", "/api/categories", data);
   const json = await res.json();
   queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+  return json;
+}
+
+export async function deleteInvoice(id: number) {
+  const res = await apiRequest("DELETE", `/api/invoices/${id}`);
+  const json = await res.json();
+  queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
   return json;
 }
