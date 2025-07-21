@@ -118,6 +118,29 @@ npm run db:push      # Aplicar mudanças no schema do banco
 | `DATABASE_URL` | URL de conexão PostgreSQL | `postgresql://user:pass@host:5432/db` |
 | `NODE_ENV` | Ambiente de execução | `production` |
 | `SESSION_SECRET` | Chave secreta para sessões | `sua-chave-secreta-aqui` |
+| `VITE_FIREBASE_API_KEY` | Chave da API do Firebase | `AIzaSyC...` |
+| `VITE_FIREBASE_PROJECT_ID` | ID do projeto Firebase | `meu-projeto-123` |
+| `VITE_FIREBASE_APP_ID` | ID da aplicação Firebase | `1:123456789:web:abc123` |
+
+### 9. Configuração do Firebase (Opcional)
+
+Para usar a autenticação com Google, configure o Firebase:
+
+1. **Crie um projeto no [Firebase Console](https://console.firebase.google.com)**
+2. **Ative a autenticação:**
+   - Vá para Authentication > Sign-in method
+   - Ative o provedor Google
+3. **Configure as credenciais:**
+   - Vá para Project Settings > General
+   - Copie as credenciais do seu app web
+4. **Adicione as variáveis ao `.env`:**
+   ```bash
+   VITE_FIREBASE_API_KEY=sua-api-key
+   VITE_FIREBASE_PROJECT_ID=seu-project-id
+   VITE_FIREBASE_APP_ID=seu-app-id
+   ```
+
+**Nota:** Se o Firebase não estiver configurado, a aplicação funcionará normalmente, mas o login com Google não estará disponível.
 
 ### 9. Troubleshooting
 
