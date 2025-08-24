@@ -44,7 +44,7 @@ export default function Transactions() {
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Gerenciar Transações</h1>
+              <h1 className="text-4xl font-bold text-white mb-2 font-display">Gerenciar Transações</h1>
               <p className="text-purple-100 text-lg">Controle suas receitas e despesas</p>
             </div>
             

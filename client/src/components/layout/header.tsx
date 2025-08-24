@@ -46,7 +46,7 @@ export function Header() {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-neutral-800 cursor-pointer">
+                <h1 className="text-xl font-bold text-neutral-800 cursor-pointer font-display">
                   <span className="text-primary">Fin</span>Control
                 </h1>
               </Link>

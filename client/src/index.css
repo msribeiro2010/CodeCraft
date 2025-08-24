@@ -3,47 +3,73 @@
 @tailwind utilities;
 
 :root {
-      --background: 0 0% 100%;
---foreground: 20 14.3% 4.1%;
---muted: 60 4.8% 95.9%;
---muted-foreground: 25 5.3% 44.7%;
---popover: 0 0% 100%;
---popover-foreground: 20 14.3% 4.1%;
---card: 0 0% 100%;
---card-foreground: 20 14.3% 4.1%;
---border: 20 5.9% 90%;
---input: 20 5.9% 90%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 60 4.8% 95.9%;
---secondary-foreground: 24 9.8% 10%;
---accent: 60 4.8% 95.9%;
---accent-foreground: 24 9.8% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 60 9.1% 97.8%;
---ring: 20 14.3% 4.1%;
+      --background: 45 25% 92%; /* Papiro claro */
+--foreground: 25 15% 15%; /* Marrom escuro */
+--muted: 40 20% 88%; /* Bege suave */
+--muted-foreground: 30 12% 45%; /* Marrom médio */
+--popover: 45 25% 95%; /* Papiro muito claro */
+--popover-foreground: 25 15% 15%; /* Marrom escuro */
+--card: 45 22% 94%; /* Pergaminho */
+--card-foreground: 25 15% 15%; /* Marrom escuro */
+--border: 35 18% 82%; /* Bege escuro */
+--input: 40 20% 88%; /* Bege suave */
+--primary: 25 45% 35%; /* Marrom dourado */
+--primary-foreground: 45 25% 95%; /* Papiro claro */
+--secondary: 35 18% 85%; /* Bege médio */
+--secondary-foreground: 25 15% 20%; /* Marrom escuro */
+--accent: 30 25% 75%; /* Dourado suave */
+--accent-foreground: 25 15% 15%; /* Marrom escuro */
+--destructive: 0 65% 50%; /* Vermelho terroso */
+--destructive-foreground: 45 25% 95%; /* Papiro claro */
+--ring: 25 15% 15%; /* Marrom escuro */
+--chart-1: 35 60% 55%; /* Dourado */
+--chart-2: 25 45% 40%; /* Marrom dourado */
+--chart-3: 15 35% 30%; /* Marrom escuro */
+--chart-4: 45 50% 65%; /* Bege dourado */
+--chart-5: 30 40% 50%; /* Terracota */
+--sidebar-background: 45 22% 94%; /* Pergaminho */
+--sidebar-foreground: 25 15% 20%; /* Marrom escuro */
+--sidebar-primary: 25 45% 35%; /* Marrom dourado */
+--sidebar-primary-foreground: 45 25% 95%; /* Papiro claro */
+--sidebar-accent: 35 18% 85%; /* Bege médio */
+--sidebar-accent-foreground: 25 15% 15%; /* Marrom escuro */
+--sidebar-border: 35 18% 82%; /* Bege escuro */
+--sidebar-ring: 30 12% 45%; /* Marrom médio */
 --radius: 0.5rem;
   }
   .dark {
-      --background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---ring: 240 4.9% 83.9%;
+      --background: 25 20% 8%; /* Pergaminho queimado */
+--foreground: 45 15% 85%; /* Bege claro */
+--muted: 30 15% 12%; /* Marrom muito escuro */
+--muted-foreground: 40 12% 65%; /* Bege médio */
+--popover: 25 20% 10%; /* Pergaminho escuro */
+--popover-foreground: 45 15% 85%; /* Bege claro */
+--card: 25 18% 10%; /* Pergaminho escuro */
+--card-foreground: 45 15% 85%; /* Bege claro */
+--border: 30 15% 18%; /* Marrom escuro */
+--input: 30 15% 15%; /* Marrom escuro */
+--primary: 35 40% 45%; /* Dourado escuro */
+--primary-foreground: 25 20% 8%; /* Pergaminho queimado */
+--secondary: 30 15% 15%; /* Marrom escuro */
+--secondary-foreground: 45 15% 85%; /* Bege claro */
+--accent: 35 25% 25%; /* Dourado escuro */
+--accent-foreground: 45 15% 85%; /* Bege claro */
+--destructive: 0 55% 45%; /* Vermelho terroso escuro */
+--destructive-foreground: 45 15% 85%; /* Bege claro */
+--ring: 40 12% 75%; /* Bege médio */
+--chart-1: 35 50% 45%; /* Dourado escuro */
+--chart-2: 25 35% 30%; /* Marrom dourado escuro */
+--chart-3: 15 25% 20%; /* Marrom muito escuro */
+--chart-4: 45 40% 55%; /* Bege dourado escuro */
+--chart-5: 30 30% 40%; /* Terracota escuro */
+--sidebar-background: 25 18% 10%; /* Pergaminho escuro */
+--sidebar-foreground: 45 15% 85%; /* Bege claro */
+--sidebar-primary: 35 40% 45%; /* Dourado escuro */
+--sidebar-primary-foreground: 25 20% 8%; /* Pergaminho queimado */
+--sidebar-accent: 30 15% 15%; /* Marrom escuro */
+--sidebar-accent-foreground: 45 15% 85%; /* Bege claro */
+--sidebar-border: 30 15% 18%; /* Marrom escuro */
+--sidebar-ring: 40 12% 65%; /* Bege médio */
 --radius: 0.5rem;
   }
 
@@ -53,6 +79,7 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Exo 2', system-ui, sans-serif;
+    @apply antialiased bg-background text-foreground;
   }
 }

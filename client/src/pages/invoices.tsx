@@ -10,7 +10,7 @@ export default function Invoices() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-600 via-blue-700 to-indigo-800 px-8 py-12">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative">
-            <h1 className="text-4xl font-bold text-white mb-2">Gerenciar Faturas</h1>
+            <h1 className="text-4xl font-bold text-white mb-2 font-display">Gerenciar Faturas</h1>
             <p className="text-cyan-100 text-lg">Processe e organize suas faturas com OCR inteligente</p>
           </div>
           

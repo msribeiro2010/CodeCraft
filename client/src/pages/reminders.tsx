@@ -9,7 +9,7 @@ export default function Reminders() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-600 via-pink-700 to-purple-800 px-8 py-12">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative">
-            <h1 className="text-4xl font-bold text-white mb-2">Lembretes</h1>
+            <h1 className="text-4xl font-bold text-white mb-2 font-display">Lembretes</h1>
             <p className="text-rose-100 text-lg">Mantenha-se em dia com seus compromissos financeiros</p>
           </div>
           
