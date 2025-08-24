@@ -183,8 +183,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTransaction(id: number): Promise<boolean> {
-    const result = await db.delete(transactions).where(eq(transactions.id, id)).returning();
-    return result.length > 0;
+    try {
+      // First delete all reminders associated with this transaction
+      await db.delete(reminders).where(eq(reminders.transactionId, id));
+      
+      // Then delete the transaction
+      const result = await db.delete(transactions).where(eq(transactions.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      return false;
+    }
   }
 
   async deleteAllTransactions(userId: number): Promise<boolean> {
