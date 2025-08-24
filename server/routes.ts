@@ -157,6 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { name: "Lazer", userId: newUser.id },
         { name: "Saúde", userId: newUser.id },
         { name: "Educação", userId: newUser.id },
+        { name: "Cartão de Crédito", userId: newUser.id },
         { name: "Receita", userId: newUser.id }
       ];
 
