@@ -45,3 +45,18 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# CSV data files
+*.csv
+
+# SQL dumps with data
+*-data.sql
+seed*.sql
+migrate*.sql
