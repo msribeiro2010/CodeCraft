@@ -60,3 +60,9 @@ jspm_packages/
 *-data.sql
 seed*.sql
 migrate*.sql
+
+# Files with credentials and sensitive data
+VARIAVEIS_AMBIENTE.md
+check-env.*
+check-password.*
+check-categories.cjs
