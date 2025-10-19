@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'wouter';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Repeat } from 'lucide-react';
 
 type Transaction = {
   id: number;
@@ -23,6 +24,9 @@ type Transaction = {
   amount: string;
   date: string;
   status: 'A_VENCER' | 'PAGAR' | 'PAGO';
+  isRecurring?: boolean;
+  currentInstallment?: number;
+  totalInstallments?: number;
 };
 
 type Category = {
@@ -40,20 +44,53 @@ export function RecentTransactions() {
     queryKey: ['/api/categories'],
   });
 
+  // Debug: verificar dados recebidos
+  if (transactions) {
+    const trans7 = transactions.find(t => t.id === 7);
+    if (trans7) {
+      console.log('🔍 [FRONTEND] Transação 7 recebida:', trans7);
+    }
+  }
+
   const isLoading = isLoadingTransactions || isLoadingCategories;
 
   const formatCurrency = (value: string | number, type: 'RECEITA' | 'DESPESA') => {
+    const numValue = Number(value);
+    const absValue = Math.abs(numValue);
+    
+    // Se o valor já é negativo, mantém o sinal original
+    if (numValue < 0) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(numValue);
+    }
+    
+    // Caso contrário, aplica o prefixo baseado no tipo
     const prefix = type === 'RECEITA' ? '+ ' : '- ';
     return prefix + new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(Number(value));
+    }).format(absValue);
   };
 
   const getCategoryName = (categoryId: number) => {
     if (!categories) return '';
     const category = categories.find(c => c.id === categoryId);
     return category ? category.name : '';
+  };
+
+  const getInstallmentBadge = (transaction: Transaction) => {
+    if (!transaction.isRecurring || !transaction.currentInstallment || !transaction.totalInstallments) {
+      return null;
+    }
+
+    return (
+      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 ml-2 text-xs">
+        <Repeat className="h-3 w-3 mr-1" />
+        {transaction.currentInstallment}/{transaction.totalInstallments}
+      </Badge>
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -118,8 +155,11 @@ export function RecentTransactions() {
               <TableBody>
                 {transactions && transactions.map((transaction) => (
                   <TableRow key={transaction.id} className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-all duration-200">
-                    <TableCell className="whitespace-nowrap text-sm font-semibold text-slate-800 px-6 py-4">
-                      {transaction.description}
+                    <TableCell className="text-sm font-semibold text-slate-800 px-6 py-4">
+                      <div className="flex items-center">
+                        <span>{transaction.description}</span>
+                        {getInstallmentBadge(transaction)}
+                      </div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-sm text-slate-600 font-medium">
                       {getCategoryName(transaction.categoryId)}
@@ -130,7 +170,7 @@ export function RecentTransactions() {
                     <TableCell className="whitespace-nowrap">
                       {getStatusBadge(transaction.status)}
                     </TableCell>
-                    <TableCell className={`whitespace-nowrap text-sm font-bold text-right px-6 ${transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}`}>
+                    <TableCell className={`whitespace-nowrap text-sm font-bold text-right px-6 ${Number(transaction.amount) < 0 ? 'text-red-600 font-semibold' : transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(transaction.amount, transaction.type)}
                     </TableCell>
                   </TableRow>

@@ -115,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.isAuthenticated()) {
       return next();
     }
+    console.log(`[DEBUG] Usuário não autenticado para ${req.method} ${req.path}`);
     res.status(401).json({ message: "Não autenticado" });
   };
 
@@ -158,9 +159,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { name: "Saúde", userId: newUser.id },
         { name: "Educação", userId: newUser.id },
         { name: "Cartão de Crédito", userId: newUser.id },
-        { name: "Acordo Processual", userId: newUser.id },
+        { name: "Acordo Judicial", userId: newUser.id },
         { name: "Estacionamento", userId: newUser.id },
-        { name: "Receita", userId: newUser.id }
+        { name: "Outros", userId: newUser.id }
       ];
 
       for (const category of defaultCategories) {
@@ -250,14 +251,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).id;
       const { initialBalance, overdraftLimit, notificationsEnabled } = req.body;
       
-      const updatedUser = await storage.updateUser(userId, {
-        initialBalance,
-        overdraftLimit,
-        notificationsEnabled
-      });
+      // Convert string values to proper format for database
+      const updateData: any = {};
+      
+      if (notificationsEnabled !== undefined) {
+        updateData.notificationsEnabled = Boolean(notificationsEnabled);
+      }
+      
+      if (initialBalance !== undefined) {
+        const numValue = Number(initialBalance);
+        if (isNaN(numValue)) {
+          return res.status(400).json({ error: "Saldo inicial deve ser um número válido" });
+        }
+        updateData.initialBalance = numValue.toFixed(2);
+      }
+      
+      if (overdraftLimit !== undefined) {
+        const numValue = Number(overdraftLimit);
+        if (isNaN(numValue)) {
+          return res.status(400).json({ error: "Limite de cheque especial deve ser um número válido" });
+        }
+        updateData.overdraftLimit = numValue.toFixed(2);
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
 
       if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(404).json({ error: "Usuário não encontrado" });
       }
 
       res.json({ 
@@ -272,8 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } 
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Erro ao atualizar configurações" });
+      console.error("Erro ao atualizar configurações:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
 
@@ -282,9 +302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const categories = await storage.getCategoriesByUserId(userId);
+      console.log(`📋 [CATEGORIES] Usuário ${userId}: ${categories.length} categorias encontradas`);
       res.json(categories);
     } catch (error) {
-      console.error(error);
+      console.error("[ERROR] Erro ao buscar categorias:", error);
       res.status(500).json({ message: "Erro ao buscar categorias" });
     }
   });
@@ -348,62 +369,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/transactions", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      
+
       // Ajuste os dados antes da validação
       let transactionData = {
         ...req.body,
         userId
       };
-      
+
       // Certifique-se de que categoryId seja um número
       if (transactionData.categoryId && typeof transactionData.categoryId === 'string') {
         transactionData.categoryId = parseInt(transactionData.categoryId, 10);
       }
-      
-      // Garante que a data seja um objeto Date válido
-      if (typeof transactionData.date === 'string') {
-        transactionData.date = new Date(transactionData.date);
+
+      // Certifique-se de que amount seja um número
+      if (transactionData.amount && typeof transactionData.amount === 'string') {
+        transactionData.amount = parseFloat(transactionData.amount);
       }
-      
+
+      // Mantém a data como string para SQLite
+      // A data já vem como string do frontend
+
       console.log("Dados de transação recebidos:", transactionData);
-      
-      const validation = insertTransactionSchema.safeParse(transactionData);
-      
+
+      const validation = transactionFormSchema.safeParse(transactionData);
+
       if (!validation.success) {
         console.error("Erro de validação:", validation.error.format());
         return res.status(400).json({ message: "Dados inválidos", errors: validation.error.format() });
       }
 
-      const newTransaction = await storage.createTransaction(validation.data);
-      
-      // Create reminder if status is A_VENCER and date is in the future
-      if (newTransaction.status === 'A_VENCER') {
-        const transactionDate = new Date(newTransaction.date);
-        const today = new Date();
-        
-        if (transactionDate > today) {
-          // Create reminder for 1 day before
-          const oneDayBefore = new Date(transactionDate);
-          oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-          
-          if (oneDayBefore > today) {
+      // Verifica se é uma transação recorrente com parcelas
+      const isRecurringWithInstallments =
+        transactionData.isRecurring &&
+        transactionData.recurrenceType === 'PARCELAS' &&
+        transactionData.totalInstallments > 0;
+
+      if (isRecurringWithInstallments) {
+        // Criar múltiplas transações para as parcelas
+        const recurringGroupId = createId();
+        const totalInstallments = transactionData.totalInstallments;
+        const baseDate = new Date(transactionData.date);
+        const createdTransactions = [];
+
+        for (let i = 1; i <= totalInstallments; i++) {
+          // Calcula a data de cada parcela (adiciona meses)
+          const installmentDate = new Date(baseDate);
+          installmentDate.setMonth(installmentDate.getMonth() + (i - 1));
+
+          const installmentData = {
+            ...transactionData,
+            description: `${transactionData.description} (${i}/${totalInstallments})`,
+            date: installmentDate,
+            isRecurring: true,
+            recurrenceType: 'PARCELAS',
+            totalInstallments: totalInstallments,
+            currentInstallment: i,
+            recurringGroupId: recurringGroupId,
+          };
+
+          const installment = await storage.createTransaction(installmentData);
+          createdTransactions.push(installment);
+
+          // Criar lembretes para parcelas a vencer
+          if (installment.status === 'A_VENCER') {
+            const installmentDateObj = new Date(installment.date);
+            const today = new Date();
+
+            if (installmentDateObj > today) {
+              // Lembrete para 1 dia antes
+              const oneDayBefore = new Date(installmentDateObj);
+              oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+
+              if (oneDayBefore > today) {
+                await storage.createReminder({
+                  userId,
+                  transactionId: installment.id,
+                  reminderDate: oneDayBefore
+                });
+              }
+
+              // Lembrete no dia
+              await storage.createReminder({
+                userId,
+                transactionId: installment.id,
+                reminderDate: installmentDateObj
+              });
+            }
+          }
+        }
+
+        return res.status(201).json({
+          message: `${totalInstallments} parcelas criadas com sucesso`,
+          transactions: createdTransactions,
+          recurringGroupId: recurringGroupId
+        });
+      } else {
+        // Criar transação única (comportamento original)
+        const newTransaction = await storage.createTransaction(transactionData);
+
+        // Create reminder if status is A_VENCER and date is in the future
+        if (newTransaction.status === 'A_VENCER') {
+          const transactionDate = new Date(newTransaction.date);
+          const today = new Date();
+
+          if (transactionDate > today) {
+            // Create reminder for 1 day before
+            const oneDayBefore = new Date(transactionDate);
+            oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+
+            if (oneDayBefore > today) {
+              await storage.createReminder({
+                userId,
+                transactionId: newTransaction.id,
+                reminderDate: oneDayBefore
+              });
+            }
+
+            // Create reminder for the day of
             await storage.createReminder({
               userId,
               transactionId: newTransaction.id,
-              reminderDate: oneDayBefore
+              reminderDate: transactionDate
             });
           }
-          
-          // Create reminder for the day of
-          await storage.createReminder({
-            userId,
-            transactionId: newTransaction.id,
-            reminderDate: transactionDate
-          });
         }
-      }
 
-      res.status(201).json(newTransaction);
+        res.status(201).json(newTransaction);
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erro ao criar transação" });
@@ -414,25 +506,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const transactionId = parseInt(req.params.id);
-      
+
       // Verify transaction belongs to user
       const transaction = await storage.getTransactionById(transactionId);
       if (!transaction || transaction.userId !== userId) {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
-      
+
       // Tratamento da data para garantir que seja um objeto Date válido
       const updateData = {...req.body};
-      
+
       if (updateData.date) {
         // Converter a string da data para um objeto Date
         updateData.date = new Date(updateData.date);
-        
+
         // Verificar se é uma data válida
         if (isNaN(updateData.date.getTime())) {
           return res.status(400).json({ message: "Data inválida fornecida" });
         }
       }
+
+      // Converter campos numéricos de recorrência
+      if (updateData.totalInstallments) {
+        updateData.totalInstallments = parseInt(updateData.totalInstallments);
+      }
+
+      if (updateData.currentInstallment) {
+        updateData.currentInstallment = parseInt(updateData.currentInstallment);
+      }
+
+      console.log('Dados de atualização processados:', updateData);
 
       const updatedTransaction = await storage.updateTransaction(transactionId, updateData);
       if (!updatedTransaction) {
@@ -554,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const invoiceUpload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    fileFilter: (req, file, cb) => {
+    fileFilter: (req: any, file: any, cb: any) => {
       if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
         cb(null, true);
       } else {
@@ -585,7 +688,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let fileContent = '';
       
       // Caso 1: Upload de arquivo para processamento
-      const uploadedFile = req.files && Array.isArray(req.files) && req.files.length > 0 ? req.files[0] : null;
+      const uploadedFiles = (req as any).files as Express.Multer.File[] | undefined;
+      const uploadedFile = uploadedFiles && Array.isArray(uploadedFiles) && uploadedFiles.length > 0 ? uploadedFiles[0] : null;
       
       if (uploadedFile) {
         const fileBuffer = uploadedFile.buffer;

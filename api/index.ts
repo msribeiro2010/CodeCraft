@@ -26,8 +26,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Registra rotas da API
 registerRoutes(app).catch(console.error);
 
-// Em produção, serve arquivos estáticos
-if (process.env.NODE_ENV !== 'development') {
+// Em produção local, serve arquivos estáticos; em Vercel, o static-build atende o front-end
+if (process.env.NODE_ENV !== 'development' && process.env.VERCEL !== '1') {
   serveStatic(app);
 }
 

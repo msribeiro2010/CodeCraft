@@ -21,7 +21,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '@/components/ui/skeleton';
 
 const settingsSchema = z.object({
-  initialBalance: z.string().min(1, 'Saldo inicial é obrigatório'),
+  initialBalance: z.string()
+    .min(1, 'Saldo inicial é obrigatório')
+    .refine((val) => !isNaN(Number(val)), 'Saldo inicial deve ser um número válido'),
   overdraftLimit: z.string().min(1, 'Limite de cheque especial é obrigatório'),
   notificationsEnabled: z.boolean(),
 });

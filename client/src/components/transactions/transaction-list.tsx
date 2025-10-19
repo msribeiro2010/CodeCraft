@@ -2,17 +2,18 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { 
+import { Progress } from '@/components/ui/progress';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Pencil, Trash2, Eye } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Eye, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TransactionForm } from './transaction-form';
@@ -43,6 +44,14 @@ export function TransactionList() {
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
   });
+
+  // Debug: verificar dados recebidos
+  if (transactions.length > 0) {
+    const trans7 = transactions.find((t: any) => t.id === 7);
+    if (trans7) {
+      console.log('🔍 [TRANSACTION-LIST] Transação 7 recebida:', trans7);
+    }
+  }
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: 'A_VENCER' | 'PAGO' }) => {
@@ -77,17 +86,49 @@ export function TransactionList() {
   const isLoading = isLoadingTransactions || isLoadingCategories || isLoadingBalance;
 
   const formatCurrency = (value: string | number, type: 'RECEITA' | 'DESPESA') => {
+    const numValue = Number(value);
+    const absValue = Math.abs(numValue);
+    
+    // Se o valor já é negativo, mantém o sinal original
+    if (numValue < 0) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(numValue);
+    }
+    
+    // Caso contrário, aplica o prefixo baseado no tipo
     const prefix = type === 'RECEITA' ? '+ ' : '- ';
     return prefix + new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(Number(value));
+    }).format(absValue);
   };
 
   const getCategoryName = (categoryId: number) => {
     if (!categories) return '';
     const category = categories.find((c: any) => c.id === categoryId);
     return category ? category.name : '';
+  };
+
+  const getInstallmentBadge = (transaction: any) => {
+    if (!transaction.isRecurring || !transaction.currentInstallment || !transaction.totalInstallments) {
+      return null;
+    }
+
+    const progress = (transaction.currentInstallment / transaction.totalInstallments) * 100;
+
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+          <Repeat className="h-3 w-3" />
+          Parcela {transaction.currentInstallment}/{transaction.totalInstallments}
+        </Badge>
+        <div className="flex-1 min-w-[80px] max-w-[120px]">
+          <Progress value={progress} className="h-2" />
+        </div>
+      </div>
+    );
   };
 
   const getStatusBadge = (status: string, transactionId: number) => {
@@ -99,7 +140,7 @@ export function TransactionList() {
     };
 
     const badgeClass = "cursor-pointer hover:opacity-80 transition-opacity select-none";
-    
+
     switch (status) {
       case 'PAGO':
         return (
@@ -228,11 +269,22 @@ export function TransactionList() {
                   {transactions && transactions.length > 0 ? (
                     transactions.map((transaction: any) => (
                       <TableRow key={transaction.id}>
-                        <TableCell className="font-medium">{transaction.description}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span>{transaction.description}</span>
+                            {getInstallmentBadge(transaction)}
+                          </div>
+                        </TableCell>
                         <TableCell>{getCategoryName(transaction.categoryId)}</TableCell>
                         <TableCell>{format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                         <TableCell className="cursor-default">{getStatusBadge(transaction.status, transaction.id)}</TableCell>
-                        <TableCell className={transaction.type === 'RECEITA' ? 'text-green-600' : 'text-red-600'}>
+                        <TableCell className={
+                          Number(transaction.amount) < 0
+                            ? 'text-red-600 font-semibold'
+                            : transaction.type === 'RECEITA'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                        }>
                           {formatCurrency(transaction.amount, transaction.type)}
                         </TableCell>
                         <TableCell className="text-right">
