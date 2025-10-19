@@ -13,23 +13,45 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const originalSend = res.send;
-  
+
   res.send = function(body) {
     const duration = Date.now() - start;
     log(`${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
     return originalSend.call(this, body);
   };
-  
+
   next();
 });
 
-// Registra rotas da API
-registerRoutes(app).catch(console.error);
+// Flag para garantir que rotas sejam registradas apenas uma vez
+let routesInitialized = false;
+let routesPromise: Promise<any> | null = null;
 
-// Em produção local, serve arquivos estáticos; em Vercel, o static-build atende o front-end
-if (process.env.NODE_ENV !== 'development' && process.env.VERCEL !== '1') {
-  serveStatic(app);
+// Função para inicializar as rotas
+async function initializeRoutes() {
+  if (!routesInitialized && !routesPromise) {
+    routesPromise = registerRoutes(app);
+    await routesPromise;
+    routesInitialized = true;
+
+    // Em produção local, serve arquivos estáticos; em Vercel, o static-build atende o front-end
+    if (process.env.NODE_ENV !== 'development' && process.env.VERCEL !== '1') {
+      serveStatic(app);
+    }
+  } else if (routesPromise && !routesInitialized) {
+    await routesPromise;
+  }
 }
 
-// Exporta o handler para Vercel
-export default serverless(app);
+// Handler serverless com inicialização assíncrona
+const handler = serverless(app);
+
+export default async (req: any, res: any) => {
+  try {
+    await initializeRoutes();
+    return handler(req, res);
+  } catch (error) {
+    console.error('Error initializing routes:', error);
+    res.status(500).json({ error: 'Internal server error during initialization' });
+  }
+};
