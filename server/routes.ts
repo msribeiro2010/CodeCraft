@@ -668,12 +668,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }).any();
 
   app.post("/api/invoices/upload", isAuthenticated, (req, res, next) => {
-    invoiceUpload(req, res, (err) => {
+    invoiceUpload(req, res, (err: any) => {
       if (err) {
         console.error("Erro no upload:", err);
-        return res.status(400).json({ 
-          message: "Erro de upload", 
-          details: err.message 
+        return res.status(400).json({
+          message: "Erro de upload",
+          details: err.message
         });
       }
       next();
@@ -682,13 +682,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).id;
       const barcode = req.body.barcode;
-      
+
       let processedText = '';
       let filename = '';
       let fileContent = '';
-      
+
       // Caso 1: Upload de arquivo para processamento
-      const uploadedFiles = (req as any).files as Express.Multer.File[] | undefined;
+      const uploadedFiles = (req as any).files as any[] | undefined;
       const uploadedFile = uploadedFiles && Array.isArray(uploadedFiles) && uploadedFiles.length > 0 ? uploadedFiles[0] : null;
       
       if (uploadedFile) {
