@@ -5,6 +5,7 @@ import { z } from "zod";
 // Enums for Transaction
 export const transactionTypeEnum = pgEnum('transaction_type', ['RECEITA', 'DESPESA']);
 export const transactionStatusEnum = pgEnum('transaction_status', ['A_VENCER', 'PAGAR', 'PAGO']);
+export const recurrenceTypeEnum = pgEnum('recurrence_type', ['PARCELAS', 'MENSAL', 'ANUAL']);
 
 // Base tables
 export const users = pgTable("users", {
@@ -35,6 +36,12 @@ export const transactions = pgTable("transactions", {
   invoiceId: integer("invoice_id").references(() => invoices.id),
   notes: text("notes"),
   status: transactionStatusEnum("status").notNull(),
+  // Campos de recorrência
+  isRecurring: boolean("is_recurring").default(false).notNull(),
+  recurrenceType: recurrenceTypeEnum("recurrence_type"),
+  totalInstallments: integer("total_installments"),
+  currentInstallment: integer("current_installment"),
+  recurringGroupId: text("recurring_group_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
