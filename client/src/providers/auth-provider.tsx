@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getCurrentUser } from '@/lib/auth';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 
 // Define the shape of the auth context
 type AuthContextType = {
@@ -60,20 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Listen for Firebase auth state changes (simplified)
-  useEffect(() => {
-    // Only set up Firebase listener if Firebase is configured
-    if (!auth) {
-      console.log('Firebase auth not configured, skipping Firebase listener');
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setFirebaseUser(firebaseUser);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  // Firebase desabilitado: não há listener de auth do Firebase
 
   // Check authentication status on mount
   useEffect(() => {
