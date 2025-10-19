@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export function FinancialChart() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<any[]>({
     queryKey: ['/api/dashboard/monthly-summary/last-6-months'],
   });
 

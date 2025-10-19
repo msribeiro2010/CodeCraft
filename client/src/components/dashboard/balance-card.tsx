@@ -5,12 +5,18 @@ import { CreditCard, TrendingDown, TrendingUp, CircleDollarSign } from 'lucide-r
 import { Decimal } from 'decimal.js';
 
 export function BalanceCard() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{
+    balance: string;
+    overdraftLimit: string;
+    initialBalance: string;
+    totalIncome: string;
+    totalExpense: string;
+  }>({
     queryKey: ['/api/dashboard/balance'],
     refetchInterval: 3000, // Atualiza a cada 3 segundos
   });
 
-  const formatCurrency = (value: string | number) => {
+  const formatCurrency = (value: string | number | Decimal) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',

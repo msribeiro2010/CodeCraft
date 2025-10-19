@@ -5,11 +5,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, TrendingDown, Shield } from 'lucide-react';
 
 export function OverdraftAlert() {
-  const { data: balanceData, isLoading: isLoadingBalance } = useQuery({
+  const { data: balanceData, isLoading: isLoadingBalance } = useQuery<{
+    balance: string;
+    overdraftLimit: string;
+    initialBalance: string;
+  }>({
     queryKey: ['/api/dashboard/balance'],
   });
 
-  const { data: monthlyData, isLoading: isLoadingMonthly } = useQuery({
+  const { data: monthlyData, isLoading: isLoadingMonthly } = useQuery<{
+    totalIncome: string;
+    totalExpense: string;
+  }>({
     queryKey: ['/api/dashboard/monthly-summary'],
   });
 
