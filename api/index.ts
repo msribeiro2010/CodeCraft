@@ -1,9 +1,14 @@
-import 'dotenv/config';
+// dotenv só é necessário localmente; Vercel injeta variáveis automaticamente
 import express from 'express';
 import { type Request, type Response, type NextFunction } from 'express';
 import { registerRoutes } from '../server/routes';
 import { serveStatic, log } from '../server/vite';
 import serverless from 'serverless-http';
+
+// Carrega dotenv apenas localmente (não no Vercel)
+if (process.env.VERCEL !== '1') {
+  import('dotenv/config').catch(console.error);
+}
 
 const app = express();
 app.use(express.json());
