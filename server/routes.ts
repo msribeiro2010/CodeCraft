@@ -398,17 +398,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Dados inválidos", errors: validation.error.format() });
       }
 
+      // Usa os dados validados e transformados
+      const validatedData = validation.data;
+
       // Verifica se é uma transação recorrente com parcelas
       const isRecurringWithInstallments =
-        transactionData.isRecurring &&
-        transactionData.recurrenceType === 'PARCELAS' &&
-        transactionData.totalInstallments > 0;
+        validatedData.isRecurring &&
+        validatedData.recurrenceType === 'PARCELAS' &&
+        validatedData.totalInstallments > 0;
 
       if (isRecurringWithInstallments) {
         // Criar múltiplas transações para as parcelas
         const recurringGroupId = createId();
-        const totalInstallments = transactionData.totalInstallments;
-        const baseDate = new Date(transactionData.date);
+        const totalInstallments = validatedData.totalInstallments;
+        const baseDate = new Date(validatedData.date);
         const createdTransactions = [];
 
         for (let i = 1; i <= totalInstallments; i++) {
@@ -417,11 +420,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           installmentDate.setMonth(installmentDate.getMonth() + (i - 1));
 
           const installmentData = {
-            ...transactionData,
-            description: `${transactionData.description} (${i}/${totalInstallments})`,
+            ...validatedData,
+            description: `${validatedData.description} (${i}/${totalInstallments})`,
             date: installmentDate,
             isRecurring: true,
-            recurrenceType: 'PARCELAS',
+            recurrenceType: 'PARCELAS' as const,
             totalInstallments: totalInstallments,
             currentInstallment: i,
             recurringGroupId: recurringGroupId,
@@ -465,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Criar transação única (comportamento original)
-        const newTransaction = await storage.createTransaction(transactionData);
+        const newTransaction = await storage.createTransaction(validatedData);
 
         // Create reminder if status is A_VENCER and date is in the future
         if (newTransaction.status === 'A_VENCER') {
@@ -497,8 +500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(201).json(newTransaction);
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Erro ao criar transação" });
+      console.error("❌ Erro detalhado ao criar transação:", error);
+      console.error("Stack trace:", (error as any).stack);
+      res.status(500).json({ message: "Erro ao criar transação", error: (error as any).message });
     }
   });
 
