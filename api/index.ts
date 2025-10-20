@@ -56,13 +56,23 @@ async function initializeApp() {
 
 export default async (req: any, res: any) => {
   try {
+    console.log('[API] Request:', req.method, req.url);
     await initializeApp();
     if (!handler) {
-      throw new Error('Handler not initialized');
+      console.error('[API] Handler not initialized');
+      return res.status(500).json({ error: 'Handler not initialized' });
     }
-    return handler(req, res);
+    console.log('[API] Calling handler...');
+    return await handler(req, res);
   } catch (error) {
     console.error('[API] Error:', error);
-    res.status(500).json({ error: 'Internal server error during initialization' });
+    console.error('[API] Stack:', (error as any)?.stack);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        error: 'Internal server error',
+        message: (error as any)?.message,
+        stack: process.env.NODE_ENV === 'development' ? (error as any)?.stack : undefined
+      });
+    }
   }
 };
