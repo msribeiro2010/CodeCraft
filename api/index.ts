@@ -31,10 +31,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Flag para garantir que rotas sejam registradas apenas uma vez
 let routesInitialized = false;
 let routesPromise: Promise<any> | null = null;
+let handler: any = null;
 
-// Função para inicializar as rotas
-async function initializeRoutes() {
+// Função para inicializar as rotas e handler
+async function initializeApp() {
   if (!routesInitialized && !routesPromise) {
+    console.log('[API] Initializing routes...');
     routesPromise = registerRoutes(app);
     await routesPromise;
     routesInitialized = true;
@@ -43,20 +45,24 @@ async function initializeRoutes() {
     if (process.env.NODE_ENV !== 'development' && process.env.VERCEL !== '1') {
       serveStatic(app);
     }
+
+    // Cria o handler DEPOIS das rotas serem registradas
+    handler = serverless(app);
+    console.log('[API] Routes initialized and handler created');
   } else if (routesPromise && !routesInitialized) {
     await routesPromise;
   }
 }
 
-// Handler serverless com inicialização assíncrona
-const handler = serverless(app);
-
 export default async (req: any, res: any) => {
   try {
-    await initializeRoutes();
+    await initializeApp();
+    if (!handler) {
+      throw new Error('Handler not initialized');
+    }
     return handler(req, res);
   } catch (error) {
-    console.error('Error initializing routes:', error);
+    console.error('[API] Error:', error);
     res.status(500).json({ error: 'Internal server error during initialization' });
   }
 };
