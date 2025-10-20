@@ -1,78 +1,16 @@
-// dotenv só é necessário localmente; Vercel injeta variáveis automaticamente
+// Simplified handler that directly creates Express app with routes
 import express from 'express';
-import { type Request, type Response, type NextFunction } from 'express';
 import { registerRoutes } from '../server/routes';
-import { serveStatic, log } from '../server/vite';
 import serverless from 'serverless-http';
-
-// Carrega dotenv apenas localmente (não no Vercel)
-if (process.env.VERCEL !== '1') {
-  import('dotenv/config').catch(console.error);
-}
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Middleware de log
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  const originalSend = res.send;
+// Initialize routes immediately at module level (top-level await)
+await registerRoutes(app);
 
-  res.send = function(body) {
-    const duration = Date.now() - start;
-    log(`${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
-    return originalSend.call(this, body);
-  };
+// Create handler after routes are registered
+const handler = serverless(app);
 
-  next();
-});
-
-// Flag para garantir que rotas sejam registradas apenas uma vez
-let routesInitialized = false;
-let routesPromise: Promise<any> | null = null;
-let handler: any = null;
-
-// Função para inicializar as rotas e handler
-async function initializeApp() {
-  if (!routesInitialized && !routesPromise) {
-    console.log('[API] Initializing routes...');
-    routesPromise = registerRoutes(app);
-    await routesPromise;
-    routesInitialized = true;
-
-    // Em produção local, serve arquivos estáticos; em Vercel, o static-build atende o front-end
-    if (process.env.NODE_ENV !== 'development' && process.env.VERCEL !== '1') {
-      serveStatic(app);
-    }
-
-    // Cria o handler DEPOIS das rotas serem registradas
-    handler = serverless(app);
-    console.log('[API] Routes initialized and handler created');
-  } else if (routesPromise && !routesInitialized) {
-    await routesPromise;
-  }
-}
-
-export default async (req: any, res: any) => {
-  try {
-    console.log('[API] Request:', req.method, req.url);
-    await initializeApp();
-    if (!handler) {
-      console.error('[API] Handler not initialized');
-      return res.status(500).json({ error: 'Handler not initialized' });
-    }
-    console.log('[API] Calling handler...');
-    return await handler(req, res);
-  } catch (error) {
-    console.error('[API] Error:', error);
-    console.error('[API] Stack:', (error as any)?.stack);
-    if (!res.headersSent) {
-      return res.status(500).json({
-        error: 'Internal server error',
-        message: (error as any)?.message,
-        stack: process.env.NODE_ENV === 'development' ? (error as any)?.stack : undefined
-      });
-    }
-  }
-};
+export default handler;
