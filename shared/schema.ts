@@ -79,6 +79,13 @@ export const insertTransactionSchema = createInsertSchema(transactions)
   .omit({
     id: true,
     createdAt: true,
+  })
+  .extend({
+    // Aceita number e converte para string (decimal no DB)
+    amount: z.union([
+      z.string(),
+      z.number().transform((n) => n.toString())
+    ])
   });
 
 // Transformador personalizado para datas no formulário
